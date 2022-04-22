@@ -104,6 +104,7 @@ func Handler(client interfaces.ReciverAndSender) {
 		case 73:
 			say := clientpackets.Say(client, data)
 			broadcast.BroadCastChat(client, say)
+
 		case 89:
 			clientpackets.ValidationPosition(data, client.GetCurrentChar())
 			//broadcast.Checkaem(client, pkg)

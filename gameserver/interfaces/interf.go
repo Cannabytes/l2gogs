@@ -1,5 +1,7 @@
 package interfaces
 
+import "l2gogameserver/gameserver/models/buff/buffdata"
+
 type Identifier interface {
 	GetId() int32
 }
@@ -8,6 +10,9 @@ type UniquerId interface {
 }
 type Namer interface {
 	GetName() string
+}
+type Other interface {
+	GetBuff() []buffdata.BuffUser
 }
 type Positionable interface {
 	SetX(int32)
@@ -40,6 +45,7 @@ type CharacterI interface {
 	Positionable
 	Namer
 	UniquerId
+	Other
 	EncryptAndSend(data []byte)
 	CloseChannels()
 	GetClassId() int32

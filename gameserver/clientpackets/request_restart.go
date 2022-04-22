@@ -3,6 +3,7 @@ package clientpackets
 import (
 	"l2gogameserver/gameserver/interfaces"
 	"l2gogameserver/gameserver/models"
+	"l2gogameserver/gameserver/models/buff"
 	"l2gogameserver/gameserver/serverpackets"
 	"l2gogameserver/packets"
 )
@@ -13,6 +14,7 @@ func RequestRestart(data []byte, clientI interfaces.ReciverAndSender) {
 		return
 	}
 
+	buff.SaveBuff(client)
 	client.SaveUser()
 	//todo need save in db
 

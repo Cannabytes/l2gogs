@@ -8,6 +8,8 @@ import (
 	"l2gogameserver/db"
 	"l2gogameserver/gameserver/dto"
 	"l2gogameserver/gameserver/interfaces"
+	"l2gogameserver/gameserver/models/buff"
+	"l2gogameserver/gameserver/models/buff/buffdata"
 	"l2gogameserver/gameserver/models/items"
 	"l2gogameserver/gameserver/models/race"
 	"l2gogameserver/utils"
@@ -76,6 +78,7 @@ type (
 		IsMoving                bool
 		Sit                     bool
 		FirstEnterGame          bool
+		Buff                    []buffdata.BuffUser
 	}
 	SkillHolder struct {
 		Skill        Skill
@@ -156,6 +159,7 @@ func (c *Character) GetPercentFromCurrentLevel(exp, level int32) float64 {
 func (c *Character) Load() {
 	c.InGame = true
 	c.ShortCut = RestoreMe(c.ObjectId, c.ClassId)
+	c.Buff = buff.GetBuffSkill(c.ObjectId)
 	c.LoadSkills()
 	c.SkillQueue = make(chan SkillHolder)
 	c.Inventory = GetMyItems(c.ObjectId)
@@ -179,7 +183,6 @@ func (c *Character) Load() {
 	go c.Shadow()
 	go c.ListenSkillQueue()
 	go c.checkRegion()
-
 }
 
 func (c *Character) Shadow() {
@@ -397,6 +400,9 @@ func (c *Character) GetObjectId() int32 {
 }
 func (c *Character) GetName() string {
 	return c.CharName
+}
+func (c *Character) GetBuff() []buffdata.BuffUser {
+	return c.Buff
 }
 func (c *Character) SetX(x int32) {
 	c.Coordinates.X = x

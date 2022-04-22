@@ -8,6 +8,7 @@ import (
 
 func (c *Client) SaveUser() {
 	c.saveLocation()
+
 }
 
 func (c *Client) saveLocation() {

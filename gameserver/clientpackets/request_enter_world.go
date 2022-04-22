@@ -107,6 +107,10 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 	pkg16 := serverpackets.ActionList(client) //todo test
 	buff.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg16))
 
+	//Баффы на персонаже
+	pkg17 := serverpackets.AbnormalStatusUpdate(client)
+	buff.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg17))
+
 	client.Send(buff.Bytes())
 	packets.Put(buff)
 	//NPCdistance := client.CurrentChar.SpawnDistancePoint(5000)
