@@ -54,7 +54,7 @@ func сlearBuffListDB(charId int32) {
 	}
 }
 
-// SaveBuff Сохранение баффа, который на игроке в БД
+// SaveBuff Сохранение баффа в БД, который на игроке
 func SaveBuff(clientI interfaces.ReciverAndSender) {
 	MyBuffList := clientI.GetCurrentChar().GetBuff()
 	buffCount := len(MyBuffList)
