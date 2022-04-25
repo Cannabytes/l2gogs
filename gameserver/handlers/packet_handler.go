@@ -36,7 +36,6 @@ func Handler(client interfaces.ReciverAndSender) {
 			clientpackets.AddTradeItem(data, client)
 		case 28: //tradeDone
 			clientpackets.TradeDone(data, client)
-
 		case 13:
 			// CharacterDelete
 		case 35:

@@ -26,7 +26,6 @@ func (g *GameServer) Start() {
 	if err != nil {
 		logger.Error.Panicln(err.Error())
 	}
-
 	var onlineChars models.OnlineCharacters
 	onlineChars.Char = make(map[int32]*models.Character)
 	gameserver.OnlineCharacters = &onlineChars

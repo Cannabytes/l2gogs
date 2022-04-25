@@ -8,8 +8,8 @@ import (
 	"l2gogameserver/db"
 	"l2gogameserver/gameserver/dto"
 	"l2gogameserver/gameserver/interfaces"
-	"l2gogameserver/gameserver/models/buff"
-	"l2gogameserver/gameserver/models/buff/buffdata"
+	"log"
+
 	"l2gogameserver/gameserver/models/items"
 	"l2gogameserver/gameserver/models/race"
 	"l2gogameserver/utils"
@@ -78,9 +78,15 @@ type (
 		IsMoving                bool
 		Sit                     bool
 		FirstEnterGame          bool
-		Buff                    []buffdata.BuffUser
+		IsOnline                bool //Если игрок онлайн
+		Buff                    []*BuffUser
 		OtherProperties         CharProperties
 		Setting                 CharSetting
+	}
+	BuffUser struct {
+		Id     int //id skill
+		Level  int //skill level
+		Second int //Время баффа в секундах (обратный счет)
 	}
 	CharProperties struct {
 		InventorySlot int32 //Кол-во слотов не постоянное, меняется в зависимости от определенных умений или статуса персонажа
@@ -179,11 +185,38 @@ func (c *Character) GetPercentFromCurrentLevel(exp, level int32) float64 {
 	return float64(int64(exp)-expPerLevel) / float64(expPerLevel2-expPerLevel)
 }
 
+// GetBuffSkill Получение из БД всех сохраненных баффов
+func GetBuffSkill(charId int32) []*BuffUser {
+	logger.Warning.Println("Загрузка баффа пользователя")
+	dbConn, err := db.GetConn()
+	if err != nil {
+		logger.Error.Panicln(err)
+	}
+	defer dbConn.Release()
+	var buffs []*BuffUser
+
+	rows, err := dbConn.Query(context.Background(), "SELECT id, level, second FROM buffs WHERE char_id = $1", charId)
+	if err != nil {
+		logger.Error.Panicln(err)
+	}
+	for rows.Next() {
+		var buff BuffUser
+		err = rows.Scan(&buff.Id, &buff.Level, &buff.Second)
+		if err != nil {
+			logger.Error.Panicln(err)
+		}
+		log.Println(buff.Second)
+		buffs = append(buffs, &buff)
+	}
+	fmt.Printf("%v\n", buffs)
+	return buffs
+}
+
 // Load загрузка персонажа
 func (c *Character) Load() {
 	c.InGame = true
 	c.ShortCut = RestoreMe(c.ObjectId, c.ClassId)
-	c.Buff = buff.GetBuffSkill(c.ObjectId)
+	c.Buff = GetBuffSkill(c.ObjectId)
 	c.LoadSkills()
 	c.SkillQueue = make(chan SkillHolder)
 	c.Inventory = GetMyItems(c.ObjectId)
@@ -425,8 +458,11 @@ func (c *Character) GetObjectId() int32 {
 func (c *Character) GetName() string {
 	return c.CharName
 }
-func (c *Character) GetBuff() []buffdata.BuffUser {
+func (c *Character) GetBuff() []*BuffUser {
 	return c.Buff
+}
+func (c *Character) SetStatusOffline() {
+	c.IsOnline = false
 }
 func (c *Character) SetX(x int32) {
 	c.Coordinates.X = x

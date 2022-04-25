@@ -1,7 +1,5 @@
 package interfaces
 
-import "l2gogameserver/gameserver/models/buff/buffdata"
-
 type Identifier interface {
 	GetId() int32
 }
@@ -12,7 +10,7 @@ type Namer interface {
 	GetName() string
 }
 type Other interface {
-	GetBuff() []buffdata.BuffUser
+	SetStatusOffline()
 }
 type Positionable interface {
 	SetX(int32)

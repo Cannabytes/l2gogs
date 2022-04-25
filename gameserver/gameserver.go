@@ -34,17 +34,18 @@ func AddOnlineChar(character interfaces.CharacterI) {
 	if !ok {
 		logger.Error.Panicln("addOnlineCharlogger.Error.Panicln")
 	}
+	ch.IsOnline = true
 	OnlineCharacters.Char[character.GetObjectId()] = ch
 }
 
 func CharOffline(client interfaces.ReciverAndSender) {
 	OnlineCharacters.Mu.Lock()
+	OnlineCharacters.Char[client.GetCurrentChar().GetObjectId()].IsOnline = false
 	delete(OnlineCharacters.Char, client.GetCurrentChar().GetObjectId())
 	OnlineCharacters.Mu.Unlock()
 	client.GetCurrentChar().GetCurrentRegion().DeleteVisibleChar(client.GetCurrentChar())
 
 	client.GetCurrentChar().CloseChannels()
-
 	//todo close all character goroutine, save info in DB
 	logger.Info.Println("Socket Close For: ", client.GetCurrentChar().GetName())
 }

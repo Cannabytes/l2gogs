@@ -5,41 +5,12 @@ import (
 	"l2gogameserver/data/logger"
 	"l2gogameserver/db"
 	"l2gogameserver/gameserver/interfaces"
-	"l2gogameserver/gameserver/models/buff/buffdata"
+	"l2gogameserver/gameserver/models"
+	"l2gogameserver/gameserver/serverpackets"
+	"log"
 	"strconv"
+	"time"
 )
-
-// TODO: Необходимо сделать элементарную проверку на дубликаты баффов, сохранения, чтения.
-func removeBuffDuplicates(buffs []buffdata.BuffUser) {
-}
-
-// GetBuffSkill Получение из БД всех сохраненных баффов
-func GetBuffSkill(charId int32) []buffdata.BuffUser {
-	dbConn, err := db.GetConn()
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
-	defer dbConn.Release()
-
-	rows, err := dbConn.Query(context.Background(), "SELECT id, level, second FROM buffs WHERE char_id = $1", charId)
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
-	var buffs []buffdata.BuffUser
-	for rows.Next() {
-		var buff buffdata.BuffUser
-		err = rows.Scan(&buff.Id, &buff.Level, &buff.Second)
-		if err != nil {
-			logger.Error.Panicln(err)
-		}
-		buffs = append(buffs, buff)
-	}
-	if len(buffs) >= 1 {
-		сlearBuffListDB(charId)
-	}
-	removeBuffDuplicates(buffs)
-	return buffs
-}
 
 // Очищает записи баффа в БД
 func сlearBuffListDB(charId int32) {
@@ -56,7 +27,7 @@ func сlearBuffListDB(charId int32) {
 
 // SaveBuff Сохранение баффа в БД, который на игроке
 func SaveBuff(clientI interfaces.ReciverAndSender) {
-	MyBuffList := clientI.GetCurrentChar().GetBuff()
+	MyBuffList := clientI.(*models.Client).CurrentChar.GetBuff()
 	buffCount := len(MyBuffList)
 	if buffCount == 0 {
 		return
@@ -81,6 +52,32 @@ func SaveBuff(clientI interfaces.ReciverAndSender) {
 	_, err = dbConn.Exec(context.Background(), `INSERT INTO "buffs" ("char_id", "id", "level", "second") VALUES `+values)
 	if err != nil {
 		logger.Error.Panicln(err)
+	}
+}
+
+func BuffTimeOut(ch *models.Character) {
+	for {
+		if ch.IsOnline == false {
+			log.Println("Персонаж вышел из игры, время баффа не отнимаем")
+			return
+		}
+		if len(ch.Buff) == 0 {
+			time.Sleep(500 * time.Millisecond)
+			logger.Warning.Println("На персонаже нет баффов")
+			continue
+		}
+		for index, buff := range ch.Buff {
+			if buff.Second == 1 || buff.Second == 60 {
+				ch.Buff = append(ch.Buff[:index], ch.Buff[index+1:]...)
+				logger.Warning.Println("Бафф сейчас должен сняться", buff.Id)
+				pkg17 := serverpackets.AbnormalStatusUpdate(ch.Buff)
+				ch.EncryptAndSend(pkg17)
+				continue
+			}
+			buff.Second -= 1
+			logger.Warning.Println("Баффу осталось", buff.Id, buff.Second)
+		}
+		time.Sleep(1 * time.Second)
 	}
 
 }
