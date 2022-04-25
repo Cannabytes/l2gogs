@@ -8,8 +8,6 @@ import (
 	"l2gogameserver/db"
 	"l2gogameserver/gameserver/dto"
 	"l2gogameserver/gameserver/interfaces"
-	"log"
-
 	"l2gogameserver/gameserver/models/items"
 	"l2gogameserver/gameserver/models/race"
 	"l2gogameserver/utils"
@@ -205,10 +203,8 @@ func GetBuffSkill(charId int32) []*BuffUser {
 		if err != nil {
 			logger.Error.Panicln(err)
 		}
-		log.Println(buff.Second)
 		buffs = append(buffs, &buff)
 	}
-	fmt.Printf("%v\n", buffs)
 	return buffs
 }
 

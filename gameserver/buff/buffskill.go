@@ -63,11 +63,10 @@ func BuffTimeOut(ch *models.Character) {
 		}
 		if len(ch.Buff) == 0 {
 			time.Sleep(500 * time.Millisecond)
-			logger.Warning.Println("На персонаже нет баффов")
 			continue
 		}
 		for index, buff := range ch.Buff {
-			if buff.Second == 1 || buff.Second == 60 {
+			if buff.Second == 1 {
 				ch.Buff = append(ch.Buff[:index], ch.Buff[index+1:]...)
 				logger.Warning.Println("Бафф сейчас должен сняться", buff.Id)
 				pkg17 := serverpackets.AbnormalStatusUpdate(ch.Buff)

@@ -124,20 +124,22 @@ func (c *Character) LoadCharactersMacros() {
 	}
 	for index, macros := range Macroses {
 		MacrosesCommands = nil
-		sqlCommand := `SELECT * FROM "macros_commands" WHERE command_id=$1`
+		sqlCommand := `SELECT command_id, index, type, skill_id, shortcut_id, name FROM "macros_commands" WHERE command_id=$1`
 		rowsCommand, err := dbConn.Query(context.Background(), sqlCommand, macros.Id)
 		if err != nil {
 			logger.Info.Println(err.Error())
 			return
 		}
+
 		for rowsCommand.Next() {
-			cCom := MacroCommand{}
-			err = rows.Scan(&cCom.Id, &cCom.Index, &cCom.Type, &cCom.SkillID, &cCom.ShortcutID, &cCom.Name)
+
+			mc := MacroCommand{}
+			err = rows.Scan(&mc.Id, &mc.Index, &mc.Type, &mc.SkillID, &mc.ShortcutID, &mc.Name)
 			if err != nil {
 				logger.Info.Println(err.Error())
 				return
 			}
-			MacrosesCommands = append(MacrosesCommands, cCom)
+			MacrosesCommands = append(MacrosesCommands, mc)
 		}
 		macros.Count = uint8(index)
 		macros.Commands = MacrosesCommands
