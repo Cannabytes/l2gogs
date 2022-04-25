@@ -79,6 +79,30 @@ type (
 		Sit                     bool
 		FirstEnterGame          bool
 		Buff                    []buffdata.BuffUser
+		OtherProperties         CharProperties
+		Setting                 CharSetting
+	}
+	CharProperties struct {
+		InventorySlot int32 //Кол-во слотов не постоянное, меняется в зависимости от определенных умений или статуса персонажа
+		BuffSlot      int32 //Кол-во слотов не постоянное, меняется в зависимости от определенных умений
+	}
+	CharSetting struct {
+		Language       int  // TODO:потом заменить на список
+		EnableExp      bool //Получение опыта
+		EnableSP       bool //Получение SP
+		EnableAutoLoot bool //Автоматический подбор дропа
+
+		AutoTradeParty  bool //Автоматически принимать трейд от членов пати
+		AutoTradeClan   bool //Автоматически принимать трейд от членов клана
+		AutoTradeSelfIP bool //Автоматически принимать трейд от всех с таким же IP
+		AutoTradeAll    bool //Автоматически принимать трейд от всех игроков
+
+		AutoPartyAll    bool //Автоматически принимать пати от всех
+		AutoPartyClan   bool //Автоматически принимать пати от членов клана
+		AutoPartySelfIP bool //Автоматически принимать пати от всех с таким же IP
+
+		EnableSoulShotHalo bool //Вкл/Откл. сияния сосок
+
 	}
 	SkillHolder struct {
 		Skill        Skill
