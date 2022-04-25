@@ -503,6 +503,8 @@ func setPaperdollItem(slot uint8, selectedItem *MyItem, character *Character) {
 
 func getFirstEmptySlot(myItems []MyItem) int32 {
 	limit := int32(80) // todo дефолтно 80 , но может быть больше
+	//todo:(c)logan22, может быть больше и во время игры меняться,
+	//следовательно лучше вывести в отдельную структуру с дополнительными параметры персонажа
 
 	for i := int32(0); i < limit; i++ {
 		flag := false
@@ -539,6 +541,8 @@ func (i *MyItem) GetAttackElement() attribute.Attribute {
 func (i *MyItem) getBaseAttributeElement() attribute.Attribute {
 	return i.BaseAttributeAttack.Type
 }
+
+//TODO: Я хз че это за функция, переделай её, запрос он тут не нужен вроде.
 func DeleteItem(selectedItem *MyItem, character *Character) {
 	//TODO переделать, не надо создавать новый inventiry
 	dbConn, err := db.GetConn()
@@ -557,12 +561,8 @@ func DeleteItem(selectedItem *MyItem, character *Character) {
 		}
 	}
 	character.Inventory = inventory
-
-	_, err = dbConn.Exec(context.Background(), "DELETE FROM items WHERE object_id = $1", selectedItem.ObjId)
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
 }
+
 func GetPaperdollOrder() []uint8 {
 	return []uint8{
 		PAPERDOLL_UNDER,
@@ -641,27 +641,14 @@ func AddItem(selectedItem MyItem, character *Character) Inventory {
 // count - сколько надо удалить
 func RemoveItemCharacter(character *Character, item *MyItem, count int64) {
 	logger.Info.Println("Удаление предмета из инвентаря")
-	dbConn, err := db.GetConn()
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
-	defer dbConn.Release()
-
 	if item.Count < count || item.Count == 0 || count == 0 {
 		logger.Info.Println("Неверное количество предметов для удаления")
 	}
-
 	if item.Count == count {
 		DeleteItem(item, character)
 		item = nil
 	} else {
 		newCount := item.Count - count
-		_, err = dbConn.Exec(context.Background(),
-			`UPDATE "items" SET "count" = $1 WHERE "owner_id" = $2 AND "object_id" = $3 AND "item" = $4`,
-			newCount, character.ObjectId, item.ObjId, item.Id)
-		if err != nil {
-			logger.Error.Panicln(err)
-		}
 		item.Count = newCount
 	}
 }
@@ -686,12 +673,6 @@ func ExistItemObject(characterI interfaces.CharacterI, objectId int32, count int
 // 3.Тип обновления/удаления/добавления
 // 4.True если предмет найден
 func AddInventoryItem(character *Character, item MyItem, count int64) (MyItem, int64, int16, bool) {
-	dbConn, err := db.GetConn()
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
-	defer dbConn.Release()
-
 	for index, inv := range character.Inventory.Items {
 		if inv.Item.Id == item.Id {
 			if inv.IsEquipable() {
@@ -701,10 +682,6 @@ func AddInventoryItem(character *Character, item MyItem, count int64) (MyItem, i
 			//Если предмет стакуемый, тогда изменим его значение
 			if inv.ConsumeType == consumeType.Stackable || inv.ConsumeType == consumeType.Asset {
 				inv.Count = inv.Count + count
-				_, err = dbConn.Exec(context.Background(), `UPDATE "items" SET "count" = $1, "loc" = 'INVENTORY' WHERE "owner_id" = $2 AND "item" = $3`, inv.Count, character.ObjectId, inv.Item.Id)
-				if err != nil {
-					logger.Error.Panicln(err)
-				}
 				character.Inventory.Items[index].Count = inv.Count
 				inv.Loc = "INVENTORY"
 				return inv, inv.Count, UpdateTypeModify, true
@@ -713,10 +690,6 @@ func AddInventoryItem(character *Character, item MyItem, count int64) (MyItem, i
 				item.Count = count
 				item.LocData = getFirstEmptySlot(character.Inventory.Items)
 				character.Inventory.Items = append(character.Inventory.Items, item)
-				_, err = dbConn.Exec(context.Background(), `INSERT INTO "items" ("owner_id", "object_id", "item", "count", "enchant_level", "loc", "loc_data", "time_of_use", "custom_type1", "custom_type2", "mana_left", "time", "agathion_energy") VALUES ($1, $2, $3, $4, 0, 'INVENTORY', 0, 0, 0, 0, '-1', 0, 0)`, character.ObjectId, item.ObjId, item.Item.Id, item.Count)
-				if err != nil {
-					logger.Error.Panicln(err)
-				}
 				return item, count, UpdateTypeAdd, true
 			}
 		}
@@ -725,10 +698,6 @@ func AddInventoryItem(character *Character, item MyItem, count int64) (MyItem, i
 	item.Count = count
 	item.LocData = getFirstEmptySlot(character.Inventory.Items)
 	character.Inventory.Items = append(character.Inventory.Items, item)
-	_, err = dbConn.Exec(context.Background(), `INSERT INTO "items" ("owner_id", "object_id", "item", "count", "enchant_level", "loc", "loc_data", "time_of_use", "custom_type1", "custom_type2", "mana_left", "time", "agathion_energy") VALUES ($1, $2, $3, $4, 0, 'INVENTORY', $5, 0, 0, 0, '-1', 0, 0)`, character.ObjectId, item.ObjId, item.Item.Id, item.Count, item.LocData)
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
 	return item, count, UpdateTypeAdd, true
 }
 
@@ -738,36 +707,18 @@ func AddInventoryItem(character *Character, item MyItem, count int64) (MyItem, i
 // 3.Type удаления (Remove/Update)
 // 4.Возращаемт False если предмет не был найден в инвентаре
 func RemoveItem(character *Character, item *MyItem, count int64) (MyItem, int64, int16, bool) {
-	dbConn, err := db.GetConn()
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
-	defer dbConn.Release()
-
 	for index, itm := range character.Inventory.Items {
 		if itm.Id == item.Id {
 			if itm.ConsumeType == consumeType.Stackable || itm.ConsumeType == consumeType.Asset {
 				itm.Count -= count
 				if itm.Count <= 0 {
-					_, err = dbConn.Exec(context.Background(), `DELETE FROM "items" WHERE "owner_id" = $1 AND "object_id" = $2 AND "item" = $3`, character.ObjectId, itm.ObjId, itm.Id)
-					if err != nil {
-						logger.Error.Panicln(err)
-					}
 					character.Inventory.Items = append(character.Inventory.Items[:index], character.Inventory.Items[index+1:]...)
 					return MyItem{}, itm.Count, UpdateTypeRemove, true
 				} else {
-					_, err = dbConn.Exec(context.Background(), `UPDATE "items" SET "count" = $1 WHERE "owner_id" = $2 AND "object_id" = $3 AND "item" = $4`, itm.Count, character.ObjectId, itm.ObjId, itm.Id)
-					if err != nil {
-						logger.Error.Panicln(err)
-					}
 					character.Inventory.Items[index].Count = itm.Count
 					return character.Inventory.Items[index], itm.Count, UpdateTypeModify, true
 				}
 			} else {
-				_, err = dbConn.Exec(context.Background(), `DELETE FROM "items" WHERE "owner_id" = $1 AND "object_id" = $2 AND "item" = $3`, character.ObjectId, itm.ObjId, itm.Item.Id)
-				if err != nil {
-					logger.Error.Panicln(err)
-				}
 				character.Inventory.Items = append(character.Inventory.Items[:index], character.Inventory.Items[index+1:]...)
 				return MyItem{}, 0, UpdateTypeRemove, true
 			}
