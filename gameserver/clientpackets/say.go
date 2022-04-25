@@ -19,7 +19,7 @@ func Say(client interfaces.ReciverAndSender, data []byte) models.Say {
 	buffer := packets.Get()
 	if strings.HasPrefix(say.Text, ".") {
 		say.Type = chat.SpecialCommand
-		say.Text = "tok"
+		return say
 	}
 	defer packets.Put(buffer)
 

@@ -8,6 +8,8 @@ import (
 	"l2gogameserver/gameserver/clientpackets"
 	"l2gogameserver/gameserver/interfaces"
 	"l2gogameserver/gameserver/listeners"
+	"l2gogameserver/gameserver/models/chat"
+	"l2gogameserver/gameserver/models/say/command"
 	"l2gogameserver/packets"
 )
 
@@ -103,8 +105,11 @@ func Handler(client interfaces.ReciverAndSender) {
 
 		case 73:
 			say := clientpackets.Say(client, data)
-			broadcast.BroadCastChat(client, say)
-
+			if say.Type == chat.SpecialCommand {
+				command.ExistCommand(say.Text, client)
+			} else {
+				broadcast.BroadCastChat(client, say)
+			}
 		case 89:
 			clientpackets.ValidationPosition(data, client.GetCurrentChar())
 			//broadcast.Checkaem(client, pkg)
