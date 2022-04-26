@@ -13,10 +13,10 @@ func RequestRestart(data []byte, clientI interfaces.ReciverAndSender) {
 	if !ok {
 		return
 	}
+	client.GetCurrentChar().SetStatusOffline()
 
 	buff.SaveBuff(client)
 	client.SaveUser()
-	client.GetCurrentChar().SetStatusOffline()
 
 	//todo need save in db
 

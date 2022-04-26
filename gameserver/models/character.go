@@ -193,7 +193,7 @@ func GetBuffSkill(charId int32) []*BuffUser {
 	defer dbConn.Release()
 	var buffs []*BuffUser
 
-	rows, err := dbConn.Query(context.Background(), "SELECT id, level, second FROM buffs WHERE char_id = $1", charId)
+	rows, err := dbConn.Query(context.Background(), "SELECT skill_id, level, second FROM character_buffs WHERE char_id = $1", charId)
 	if err != nil {
 		logger.Error.Panicln(err)
 	}
