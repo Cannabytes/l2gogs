@@ -130,11 +130,9 @@ func (c *Character) LoadCharactersMacros() {
 			logger.Info.Println(err.Error())
 			return
 		}
-
 		for rowsCommand.Next() {
-
 			mc := MacroCommand{}
-			err = rows.Scan(&mc.Id, &mc.Index, &mc.Type, &mc.SkillID, &mc.ShortcutID, &mc.Name)
+			err = rowsCommand.Scan(&mc.Id, &mc.Index, &mc.Type, &mc.SkillID, &mc.ShortcutID, &mc.Name)
 			if err != nil {
 				logger.Info.Println(err.Error())
 				return
