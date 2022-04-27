@@ -1,7 +1,10 @@
 package clientpackets
 
 import (
+	"bytes"
+	inter "l2gogameserver/data"
 	"l2gogameserver/data/logger"
+	buff2 "l2gogameserver/gameserver/buff"
 	"l2gogameserver/gameserver/community"
 	"l2gogameserver/gameserver/interfaces"
 	"l2gogameserver/gameserver/models"
@@ -11,6 +14,7 @@ import (
 	"l2gogameserver/packets"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -20,10 +24,7 @@ import (
 	Все запросы на открытие страницы будут начинатся с _bbspage
 	следующие параметры разделены двоеточием:
 	[вызов страницы]:[команда]:[информация]:[информация]:[информация]...
-	_bbspage:open:/page/index.htm (аналог _bbspage:open:page) - открыть файл
-	_bbspage:buffer:combo:3 - наложение комбо баффа с ID 3
-	_bbspage:buffer:save - сохранить бафф персонажа
-	_bbspage:buffer:get:3 - бафф персонажа (ранее сохраненным баффом) с ID 3
+	_bbspage:open:/page/index.htm (аналог _bbspage:open:page) - открыть файл (bypass -h _bbspage:open:buffer/buffs.htm)
 	// Другие аналогия
 	_bbspage:gmshop:multisell:1531 - открыть мультиселл 1531
 	_bbspage:teleport:id:152 - Телепорт по координатам с ID 152
@@ -31,8 +32,17 @@ import (
 	_bbspage:teleport:to:5 - телепорт ранее сохраненную позицию с ID 5
 	_bbspage:teleport:remove:5 - удаление сохраненной точки с ID 5
 	...
+	// Функция наложения баффов
+	_bbsbuff:cast:1204:2:0:page/index.htm - где ID баффа 1204 и уровень 2 и цена 0, следующим параметром отправляем данные о том какую страницу открыть
+	_bbsbuff:combo:3 - наложение комбо баффа с ID 3
+	_bbsbuff:cancel - отменяет весь бафф на пользователе
+	_bbsbuff:scheme:create: $name  - создание новой схемы баффа, пробел обязательный после create: (иначе клиент не передает переменную)
+	_bbsbuff:scheme:get:3 - бафф персонажа (ранее сохраненным баффом) с ID 3
+
 */
-func BypassToServer(data []byte, client interfaces.ReciverAndSender) {
+func BypassToServer(data []byte, clientI interfaces.ReciverAndSender) {
+	//client := clientI.(*models.Client).CurrentChar
+
 	var bypassRequest = packets.NewReader(data).ReadString()
 	bypassInfo := strings.Split(bypassRequest, ":")
 	for i, s := range bypassInfo {
@@ -41,14 +51,13 @@ func BypassToServer(data []byte, client interfaces.ReciverAndSender) {
 	logger.Info.Println(bypassInfo)
 	if bypassInfo[0] == "_bbshome" && bypassRequest == "_bbshome" {
 		//Открытие диалога по умолчанию
-		SendOpenDialogBBS(client, "./datapack/html/community/index.htm")
+		SendOpenDialogBBS(clientI, "./datapack/html/community/index.htm")
 	} else if bypassInfo[0] == "_bbspage" {
 		commandname := bypassInfo[1]
 		switch commandname {
 		//Запрос открытия диалога
 		case "open":
-			SendOpenDialogBBS(client, "./datapack/html/community/"+bypassInfo[2])
-
+			SendOpenDialogBBS(clientI, "./datapack/html/community/"+bypassInfo[2])
 		//Функции телепортации
 		case "teleport":
 			switch bypassInfo[2] {
@@ -58,8 +67,8 @@ func BypassToServer(data []byte, client interfaces.ReciverAndSender) {
 					logger.Info.Println(err)
 					return
 				}
-				pkg := community.UserTeleport(client, teleportID)
-				client.EncryptAndSend(pkg)
+				pkg := community.UserTeleport(clientI, teleportID)
+				clientI.EncryptAndSend(pkg)
 			case "save":
 				logger.Info.Println("Сохранение позиции игрока")
 			case "to":
@@ -67,7 +76,6 @@ func BypassToServer(data []byte, client interfaces.ReciverAndSender) {
 			case "remove":
 				logger.Info.Println("Удаление по сохраненной позиции игрока #", bypassInfo[3])
 			}
-
 		case "gmshop":
 			switch bypassInfo[2] {
 			case "multisell": //Open multisell
@@ -77,17 +85,118 @@ func BypassToServer(data []byte, client interfaces.ReciverAndSender) {
 					return
 				}
 				logger.Info.Println("Открыть мультиселл с ID", id)
-				multisellList, ok := multisell.Get(client, id)
+				multisellList, ok := multisell.Get(clientI, id)
 				if !ok {
 					logger.Info.Println("Не найден запрашиваемый мультисел#")
 				}
 				pkg := serverpackets.MultiSell(multisellList)
-				client.EncryptAndSend(pkg)
+				clientI.EncryptAndSend(pkg)
 			}
-
 		}
 
+	} else if bypassInfo[0] == "_bbsbuff" {
+		buffAnalysis(clientI, bypassInfo)
 	}
+}
+
+func buffAnalysis(clientI interfaces.ReciverAndSender, bypassInfo []string) {
+	client := clientI.(*models.Client).CurrentChar
+	buffCommand := bypassInfo[1]
+	if buffCommand == "cast" {
+		//Функция наложения баффа на персонажа
+		buffId := bypassInfo[2]
+		buffLevel := bypassInfo[3]
+		buffCost := bypassInfo[4]
+		_ = buffCost
+		client.Buff = append(client.Buff, &models.BuffUser{
+			Id:     inter.StrToInt(buffId),
+			Level:  inter.StrToInt(buffLevel),
+			Second: 60,
+		})
+		buff2.ComparisonBuff(client.Conn)
+		pkg17 := serverpackets.AbnormalStatusUpdate(client.Buff)
+		client.EncryptAndSend(pkg17)
+
+		if len(bypassInfo) == 6 {
+			page := bypassInfo[5]
+			SendOpenDialogBBS(clientI, "./datapack/html/community/"+page)
+		}
+		return
+	}
+	if buffCommand == "combo" {
+		comboId := inter.StrToInt(bypassInfo[2])
+		combobuff, ok := buff2.GetCommunityComboBuff(comboId)
+		if !ok {
+			logger.Error.Printf("Комбо %d не найдено\n", comboId)
+			return
+		}
+		for _, buff := range combobuff.Buffs {
+			client.Buff = append(client.Buff, &models.BuffUser{
+				Id:     buff.SkillID,
+				Level:  buff.Level,
+				Second: combobuff.Time,
+			})
+		}
+		buff2.ComparisonBuff(client.Conn)
+		pkg17 := serverpackets.AbnormalStatusUpdate(client.Buff)
+		client.EncryptAndSend(pkg17)
+
+		if len(bypassInfo) == 4 {
+			page := bypassInfo[3]
+			SendOpenDialogBBS(clientI, "./datapack/html/community/"+page)
+		}
+		return
+	}
+	//Отмена всего баффа
+	if buffCommand == "cancel" {
+		client.Buff = nil
+		pkg17 := serverpackets.AbnormalStatusUpdate(client.Buff)
+		client.EncryptAndSend(pkg17)
+		if len(bypassInfo) == 3 {
+			page := bypassInfo[2]
+			SendOpenDialogBBS(clientI, "./datapack/html/community/"+strings.Trim(page, " "))
+		}
+		return
+	}
+	//Отвечает за создание схемы баффа
+	if buffCommand == "scheme" {
+		action := bypassInfo[2]
+		if action == "create" {
+			//Создание нового профиля (схем)
+			schemeName := strings.Trim(bypassInfo[3], " ")
+			if community.SchemeSave(clientI, schemeName) {
+				if len(bypassInfo) == 5 {
+					page := bypassInfo[4]
+					SendOpenDialogBBS(clientI, "./datapack/html/community/"+strings.Trim(page, " "))
+				}
+			}
+		} else if action == "get" {
+			//Наложение баффа из профиля
+			id := inter.StrToInt(bypassInfo[3])
+			client.Buff = nil
+			for _, scheme := range client.BuffScheme {
+				if scheme.Id == id {
+					for _, buff := range scheme.Buffs {
+						client.Buff = append(client.Buff, &models.BuffUser{
+							Id:     buff.SkillId,
+							Level:  buff.SkillLevel,
+							Second: 60,
+						})
+					}
+				}
+			}
+			buff2.ComparisonBuff(client.Conn)
+			pkg17 := serverpackets.AbnormalStatusUpdate(client.Buff)
+			client.EncryptAndSend(pkg17)
+			if len(bypassInfo) == 5 {
+				page := bypassInfo[4]
+				SendOpenDialogBBS(clientI, "./datapack/html/community/"+strings.Trim(page, " "))
+			}
+		}
+
+		return
+	}
+
 }
 
 //SendOpenDialogBBS Открытие диалога и отправка клиенту диалога
@@ -129,12 +238,29 @@ func SendOpenDialogBBS(client interfaces.ReciverAndSender, filename string) {
 }
 
 //parseVariableBoard Псевдопеременные из html комьюнити заменяем реальными
-func parseVariableBoard(client interfaces.ReciverAndSender, html *string) *string {
-	r := strings.NewReplacer(
-		"<?player_name?>", client.GetCurrentChar().GetName(),
-		"<?player_class?>", strconv.Itoa(int(client.GetCurrentChar().GetClassId())),
-		"<?cb_time?>", time.Now().Format(time.RFC850),
-	)
-	result := r.Replace(*html)
-	return &result
+func parseVariableBoard(clientI interfaces.ReciverAndSender, htmlcode *string) *string {
+	client := clientI.(*models.Client).CurrentChar
+
+	var Data = struct {
+		Player_name  string
+		Player_class string
+		Server_time  string
+		Buff_scheme  []*models.BuffScheme
+	}{
+		Player_name:  clientI.GetCurrentChar().GetName(),
+		Player_class: strconv.Itoa(int(clientI.GetCurrentChar().GetClassId())),
+		Server_time:  time.Now().Format(time.Stamp),
+		Buff_scheme:  client.BuffScheme,
+	}
+	var tpl bytes.Buffer
+	t, err := template.New("").Parse(*htmlcode)
+	if err != nil {
+		logger.Error.Panicln(err)
+	}
+	if err = t.Execute(&tpl, Data); err != nil {
+		logger.Error.Panicln(err)
+	}
+
+	resultStr := tpl.String()
+	return &resultStr
 }

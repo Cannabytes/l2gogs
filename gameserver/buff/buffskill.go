@@ -2,14 +2,52 @@ package buff
 
 import (
 	"context"
+	"encoding/json"
 	"l2gogameserver/data/logger"
 	"l2gogameserver/db"
 	"l2gogameserver/gameserver/interfaces"
 	"l2gogameserver/gameserver/models"
 	"l2gogameserver/gameserver/serverpackets"
+	"os"
 	"strconv"
 	"time"
 )
+
+type Combo struct {
+	ID    int `json:"id"`
+	Buffs []struct {
+		SkillID int `json:"skill_id"`
+		Level   int `json:"level"`
+	} `json:"buffs"`
+	Time    int    `json:"time"`
+	CostID  int    `json:"cost_id"`
+	Cost    int    `json:"cost"`
+	Comment string `json:"comment"`
+}
+
+var communityComboBuff = []Combo{}
+
+// LoadCommunityComboBuff Загрузка комбо баффа комьюнити
+func LoadCommunityComboBuff() {
+	file, err := os.Open("./config/community/combo_buff.json")
+	if err != nil {
+		logger.Error.Panicln("Failed to load config file " + err.Error())
+	}
+	err = json.NewDecoder(file).Decode(&communityComboBuff)
+	if err != nil {
+		logger.Error.Panicln("Failed to decode config file " + file.Name() + " " + err.Error())
+	}
+}
+
+// GetCommunityComboBuff Возвращает информацию о комбо баффах
+func GetCommunityComboBuff(id int) (Combo, bool) {
+	for _, combo := range communityComboBuff {
+		if combo.ID == id {
+			return combo, true
+		}
+	}
+	return Combo{}, false
+}
 
 // ComparisonBuff Функция сравнения баффов
 // Убирает дубликаты скиллов, и оставляет бафф (если одинаковый лвл) который больше по времени будет действовать
@@ -30,7 +68,8 @@ func ComparisonBuff(clientI interfaces.ReciverAndSender) {
 		duplicateBuff, index, ok := buffGet(unique, buff.Id)
 		if ok {
 			if duplicateBuff.Second < buff.Second || duplicateBuff.Second == buff.Second && duplicateBuff.Level < buff.Level {
-				unique = append(unique[:index], buff)
+				unique = append(unique[:index], unique[index+1:]...)
+				unique = append(unique, buff)
 			}
 		} else {
 			unique = append(unique, buff)
@@ -47,7 +86,7 @@ func сlearBuffListDB(charId int32) {
 		logger.Error.Panicln(err)
 	}
 	defer dbConn.Release()
-	_, err = dbConn.Exec(context.Background(), `DELETE FROM "buffs" WHERE "char_id" = $1`, charId)
+	_, err = dbConn.Exec(context.Background(), `DELETE FROM "character_buffs" WHERE "char_id" = $1`, charId)
 	if err != nil {
 		logger.Error.Panicln(err)
 	}
@@ -55,7 +94,7 @@ func сlearBuffListDB(charId int32) {
 
 // SaveBuff Сохранение баффа в БД, который на игроке
 func SaveBuff(clientI interfaces.ReciverAndSender) {
-	//сlearBuffListDB(clientI.(*models.Client).CurrentChar.ObjectId)
+	сlearBuffListDB(clientI.(*models.Client).CurrentChar.ObjectId)
 	MyBuffList := clientI.(*models.Client).CurrentChar.GetBuff()
 	buffCount := len(MyBuffList)
 	if buffCount == 0 {
@@ -78,7 +117,7 @@ func SaveBuff(clientI interfaces.ReciverAndSender) {
 		logger.Error.Panicln(err)
 	}
 	defer dbConn.Release()
-	_, err = dbConn.Exec(context.Background(), `INSERT INTO "buffs" ("char_id", "id", "level", "second") VALUES `+values)
+	_, err = dbConn.Exec(context.Background(), `INSERT INTO "character_buffs" ("char_id", "id", "level", "second") VALUES `+values)
 	if err != nil {
 		logger.Error.Panicln(err)
 	}

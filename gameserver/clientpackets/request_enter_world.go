@@ -3,6 +3,7 @@ package clientpackets
 import (
 	"l2gogameserver/data/logger"
 	buff2 "l2gogameserver/gameserver/buff"
+	"l2gogameserver/gameserver/community"
 	"l2gogameserver/gameserver/idfactory"
 	"l2gogameserver/gameserver/interfaces"
 	"l2gogameserver/gameserver/models"
@@ -113,6 +114,8 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 	go buff2.BuffTimeOut(client.CurrentChar)
 	pkg17 := serverpackets.AbnormalStatusUpdate(client.CurrentChar.Buff)
 	buff.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg17))
+
+	community.GetLoadCharacterScheme(clientI)
 
 	client.Send(buff.Bytes())
 	packets.Put(buff)
