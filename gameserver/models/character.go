@@ -76,8 +76,9 @@ type (
 		IsMoving                bool
 		Sit                     bool
 		FirstEnterGame          bool
-		IsOnline                bool //Если игрок онлайн
-		Buff                    []*BuffUser
+		IsOnline                bool          //Если игрок онлайн
+		Buff                    []*BuffUser   //Баффы на персонаже
+		BuffScheme              []*BuffScheme //Схемы баффов игрока
 		OtherProperties         CharProperties
 		Setting                 CharSetting
 	}
@@ -85,6 +86,17 @@ type (
 		Id     int //id skill
 		Level  int //skill level
 		Second int //Время баффа в секундах (обратный счет)
+	}
+	BuffScheme struct {
+		Id     int
+		CharId int
+		Name   string
+		Buffs  []BuffSchemeSkill
+	}
+	BuffSchemeSkill struct {
+		SchemeId   int
+		SkillId    int
+		SkillLevel int
 	}
 	CharProperties struct {
 		InventorySlot int32 //Кол-во слотов не постоянное, меняется в зависимости от определенных умений или статуса персонажа
@@ -185,7 +197,6 @@ func (c *Character) GetPercentFromCurrentLevel(exp, level int32) float64 {
 
 // GetBuffSkill Получение из БД всех сохраненных баффов
 func GetBuffSkill(charId int32) []*BuffUser {
-	logger.Warning.Println("Загрузка баффа пользователя")
 	dbConn, err := db.GetConn()
 	if err != nil {
 		logger.Error.Panicln(err)

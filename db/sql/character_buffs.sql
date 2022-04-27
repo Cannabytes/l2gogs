@@ -5,4 +5,5 @@ CREATE TABLE "character_buffs" (
   "skill_id" int4,
   "level" int4,
   "second" int4
-);
+)
+;

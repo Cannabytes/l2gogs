@@ -4,6 +4,7 @@ import (
 	"l2gogameserver/config"
 	"l2gogameserver/data"
 	"l2gogameserver/db"
+	"l2gogameserver/gameserver/buff"
 	"l2gogameserver/gameserver/idfactory"
 	"l2gogameserver/gameserver/models"
 	"l2gogameserver/gameserver/models/items"
@@ -33,6 +34,7 @@ func setup() {
 	models.LoadStats()
 	models.LoadSkills()
 	items.LoadItems()
+	buff.LoadCommunityComboBuff()
 	models.NewWorld()
 	data.Load()
 	models.LoadNpc()

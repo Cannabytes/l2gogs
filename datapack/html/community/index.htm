@@ -54,10 +54,8 @@
                           Premium:<br1>
                       </td>
                       <td width=133 align=right valign=top>
-                        <font color="LEVEL"><?player_name?></font><br1>
-                        <?player_class?><br1>
-                        <?player_noobless?><br1>
-                        <?player_premium?><br1>
+                        <font color="LEVEL">{{.Player_name}}</font><br1>
+                        {{.Player_class}}<br1>
 
                       </td>
                     </tr>
@@ -230,7 +228,7 @@
       <table width=780 height=42 align=center>
         <tr>
           <td width=780 align=center valign=top>
-            <font color="787878">Серверное время :</font>&nbsp;<font color="c99a59"><?cb_time?></font>
+            <font color="787878">Серверное время :</font>&nbsp;<font color="c99a59">{{.Server_time}}</font>
           </td>
         </tr>
       </table>
