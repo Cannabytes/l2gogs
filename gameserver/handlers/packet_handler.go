@@ -140,7 +140,7 @@ func Handler(client interfaces.ReciverAndSender) {
 		case 205:
 			clientpackets.RequestMakeMacro(client, data)
 		default:
-			logger.Info.Println("Not Found case with opcode: ", opcode)
+			logger.Info.Println("Not Found case with opcode: ", opcode, packets.GetNamePacket(opcode))
 		}
 
 	}

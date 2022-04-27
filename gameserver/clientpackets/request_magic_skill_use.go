@@ -49,16 +49,16 @@ func RequestMagicSkillUse(data []byte, clientI interfaces.ReciverAndSender) {
 	}
 	_, _, _ = magicId, ctrlPressed, shiftPressed
 
-	if skill.OperateType.IsPassive() {
-		pkg := serverpackets.ActionFailed(client)
-		buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
-		client.Send(buffer.Bytes())
-		return
-	}
+	//if skill.OperateType.IsPassive() {
+	//	pkg := serverpackets.ActionFailed(client)
+	//	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
+	//	client.Send(buffer.Bytes())
+	//	return
+	//}
 
 	if client.CurrentChar.IsCastingNow {
 		currSkill := client.CurrentChar.CurrentSkill
-		if currSkill != nil && skill.ID == currSkill.Skill.ID {
+		if currSkill != nil && skill.SkillId == currSkill.Skill.SkillId {
 			pkg := serverpackets.ActionFailed(client)
 			buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
 			client.Send(buffer.Bytes())
