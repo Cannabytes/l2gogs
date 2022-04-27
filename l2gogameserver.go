@@ -22,7 +22,6 @@ func main() {
 	//defer profile.Start(profile.MemProfile, profile.ProfilePath(".")).Stop()
 
 	server.New().Start()
-
 }
 
 func setup() {

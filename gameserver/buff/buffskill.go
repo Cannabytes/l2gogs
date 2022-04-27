@@ -85,6 +85,7 @@ func SaveBuff(clientI interfaces.ReciverAndSender) {
 }
 
 func BuffTimeOut(ch *models.Character) {
+	var buffRemove = []*models.BuffUser{}
 	for {
 		isNeedComparisonBuff := false
 		if ch.IsOnline == false {
@@ -94,20 +95,31 @@ func BuffTimeOut(ch *models.Character) {
 			time.Sleep(500 * time.Millisecond)
 			continue
 		}
-		for index, buff := range ch.Buff {
+		for _, buff := range ch.Buff {
 			buff.Second -= 1
 			if buff.Second == 0 {
 				isNeedComparisonBuff = true
-				ch.Buff = append(ch.Buff[:index], ch.Buff[index+1:]...)
-				ComparisonBuff(ch.Conn)
+				buffRemove = append(buffRemove, buff)
 				continue
 			}
 		}
 		if isNeedComparisonBuff {
+			for _, bf := range buffRemove {
+				RemoveBuffId(ch, bf.Id)
+			}
+			ComparisonBuff(ch.Conn)
 			pkg17 := serverpackets.AbnormalStatusUpdate(ch.Buff)
 			ch.EncryptAndSend(pkg17)
 		}
 		time.Sleep(1 * time.Second)
 	}
+}
 
+// Удаление баффа у игрока по ID баффа
+func RemoveBuffId(ch *models.Character, Id int) {
+	for index, buff := range ch.Buff {
+		if buff.Id == Id {
+			ch.Buff = append(ch.Buff[:index], ch.Buff[index+1:]...)
+		}
+	}
 }
