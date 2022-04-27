@@ -39,14 +39,15 @@ func RequestMagicSkillUse(data []byte, clientI interfaces.ReciverAndSender) {
 		return
 	}
 
-	skill, exist := client.CurrentChar.Skills[int(magicId)]
-	if !exist {
-		// todo тут еще идут проверки, возможно это кастомный? скилл или скилл трансформы и если нет то фейл
-		pkg := serverpackets.ActionFailed(client)
-		buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
-		client.Send(buffer.Bytes())
-		return
-	}
+	skill := client.CurrentChar.Skills[int(magicId)]
+	//if !exist {
+	// todo тут еще идут проверки, возможно это кастомный? скилл или скилл трансформы и если нет то фейл
+	pkg := serverpackets.ActionFailed(client)
+	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
+	client.Send(buffer.Bytes())
+	//return
+	//}
+
 	_, _, _ = magicId, ctrlPressed, shiftPressed
 
 	//if skill.OperateType.IsPassive() {
@@ -75,7 +76,7 @@ func RequestMagicSkillUse(data []byte, clientI interfaces.ReciverAndSender) {
 	pkg2 := serverpackets.NewMagicSkillUse(client, skill, ctrlPressed, shiftPressed)
 	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg2))
 
-	pkg := serverpackets.SetupGauge(client)
+	pkg = serverpackets.SetupGauge(client)
 	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
 	client.Send(buffer.Bytes())
 }

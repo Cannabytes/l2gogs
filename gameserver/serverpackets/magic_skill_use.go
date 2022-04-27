@@ -6,7 +6,7 @@ import (
 	"l2gogameserver/packets"
 )
 
-func NewMagicSkillUse(clientI interfaces.ReciverAndSender, skill models.AllSkill, ctrlPressed, shiftPressed bool) []byte {
+func NewMagicSkillUse(clientI interfaces.ReciverAndSender, skill models.Skill, ctrlPressed, shiftPressed bool) []byte {
 	client, ok := clientI.(*models.Client)
 	if !ok {
 		return []byte{}

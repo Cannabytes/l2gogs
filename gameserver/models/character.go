@@ -59,7 +59,7 @@ type (
 		IsDead          bool
 		IsFakeDeath     bool
 		// Skills todo: проверить слайс или мапа лучше для скилов
-		Skills                  map[int]AllSkill
+		Skills                  []Skill
 		IsCastingNow            bool
 		SkillQueue              chan SkillHolder
 		CurrentSkill            *SkillHolder // todo А может быть без * попробовать?
@@ -121,7 +121,7 @@ type (
 
 	}
 	SkillHolder struct {
-		Skill        AllSkill
+		Skill        Skill
 		CtrlPressed  bool
 		ShiftPressed bool
 	}
@@ -144,7 +144,7 @@ type (
 
 func GetNewCharacterModel() *Character {
 	character := new(Character)
-	sk := make(map[int]AllSkill)
+	var sk []Skill
 	character.Skills = sk
 	character.ChannelUpdateShadowItem = make(chan IUP, 10)
 	character.InGame = false
@@ -172,7 +172,7 @@ func (c *Character) ListenSkillQueue() {
 	}
 }
 
-func (c *Character) SetSkillToQueue(skill AllSkill, ctrlPressed, shiftPressed bool) {
+func (c *Character) SetSkillToQueue(skill Skill, ctrlPressed, shiftPressed bool) {
 	s := SkillHolder{
 		Skill:        skill,
 		CtrlPressed:  ctrlPressed,

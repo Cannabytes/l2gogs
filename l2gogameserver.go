@@ -33,6 +33,7 @@ func setup() {
 	teleport.LoadLocationListTeleport()
 	models.LoadStats()
 	models.LoadSkills()
+	models.LoadSkillsTrees()
 	items.LoadItems()
 	buff.LoadCommunityComboBuff()
 	models.NewWorld()

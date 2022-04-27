@@ -6,8 +6,8 @@ import (
 	"l2gogameserver/config"
 	"l2gogameserver/data/logger"
 	"l2gogameserver/db"
+	"l2gogameserver/gameserver/interfaces"
 	"os"
-	"strconv"
 )
 
 /*
@@ -47,7 +47,7 @@ type SkillForParseJSON struct {
 	MpConsume2  []int              `json:"mpConsume2"`
 }
 */
-type AllSkill struct {
+type Skill struct {
 	SkillName   string `json:"skill_name"`
 	SkillId     int    `json:"skill_id"`
 	Level       int    `json:"level"`
@@ -87,7 +87,7 @@ type AllSkill struct {
 	OlympiadUse bool   `json:"olympiad_use"`
 }
 
-var AllSkills map[Tuple]AllSkill
+//var AllSkills map[Tuple]AllSkill
 
 //var AllSkills map[Tuple]Skill
 
@@ -106,28 +106,153 @@ func LoadSkills() {
 	if err != nil {
 		logger.Error.Panicln("Failed to load config file " + err.Error())
 	}
-	var skillsJson []AllSkill
-
+	var skillsJson []Skill
 	err = json.NewDecoder(file).Decode(&skillsJson)
 	if err != nil {
 		logger.Error.Panicln("Failed to decode config file " + file.Name() + " " + err.Error())
 	}
 
-	AllSkills = make(map[Tuple]AllSkill)
-	for _, v := range skillsJson {
-		fSkill := v
-		if v.Level > 1 {
-			for i := 0; i < v.Level; i++ {
-				fSkill.Level = i
-				AllSkills[Tuple{v.SkillId, i}] = fSkill
-			}
-		} else {
-			AllSkills[Tuple{v.SkillId, v.Level}] = fSkill
-		}
-	}
+	//AllSkills = make(map[Tuple]AllSkill)
+	//for _, v := range skillsJson {
+	//	fSkill := v
+	//	if v.Level > 1 {
+	//		for i := 0; i < v.Level; i++ {
+	//			fSkill.Level = i
+	//			AllSkills[Tuple{v.SkillId, i}] = fSkill
+	//		}
+	//	} else {
+	//		AllSkills[Tuple{v.SkillId, v.Level}] = fSkill
+	//	}
+	//}
 	//
 	//qw := AllSkills
 	//_ = qw
+}
+
+type Trees struct {
+	ClassId       int           `json:"classid"`
+	ParentClassId int           `json:"parent_class_id,omitempty"`
+	Skills        []TreesSkills `json:"skills"`
+}
+type TreesSkills struct {
+	Name         string `json:"name"`
+	SkillId      int    `json:"skillId"`
+	SkillLvl     int    `json:"skillLvl"`
+	GetLevel     int    `json:"getLevel"`
+	Sp           int    `json:"sp"`
+	AutoLearning bool   `json:"autoLearning,omitempty"`
+	LearnedByNpc bool   `json:"learnedByNpc,omitempty"`
+}
+
+var SkillTrees []Trees
+
+//Загрузка древа скиллов
+func LoadSkillsTrees() {
+	if config.Get().Debug.EnabledSkills == false {
+		return
+	}
+	logger.Info.Println("Загрузка скиллов (SkillsTrees)")
+	file, err := os.Open("./datapack/data/stats/skill_trees/treesSkills.json")
+	if err != nil {
+		logger.Error.Panicln("Failed to load config file " + err.Error())
+	}
+	err = json.NewDecoder(file).Decode(&SkillTrees)
+	if err != nil {
+		logger.Error.Panicln("Failed to decode config file " + file.Name() + " " + err.Error())
+	}
+}
+
+//Удаление дубликатов скиллов
+func dubpicateSkillList(SkillList []TreesSkills) []TreesSkills {
+	var unique []TreesSkills
+
+	skillGet := func(unique []TreesSkills, id int) (TreesSkills, int, bool) {
+		for index, skill := range unique {
+			if skill.SkillId == id {
+				return skill, index, true
+			}
+		}
+		return TreesSkills{}, 0, false
+	}
+
+	for _, skill := range SkillList {
+		uniskill, index, ok := skillGet(unique, skill.SkillId)
+		if ok { //Если найден такой скилл уже
+			if uniskill.SkillLvl > skill.SkillLvl {
+				unique = append(unique[:index], unique[index+1:]...)
+				unique = append(unique, skill)
+			}
+		} else {
+			unique = append(unique, skill)
+		}
+	}
+
+	return unique
+}
+
+// GetLevelSkills Возвращает все скиллы персонажа, который соответствует уровню и классу
+func GetLevelSkills(clientI interfaces.ReciverAndSender) {
+	client, ok := clientI.(*Client)
+	if !ok {
+		panic(ok)
+	}
+
+	classId := int(client.CurrentChar.ClassId)
+	charLevel := int(client.CurrentChar.Level)
+
+	var all []TreesSkills
+	classSkill, tr, ok := getSkillClassParent(classId, charLevel)
+	if ok {
+		all = append(all, classSkill...)
+	}
+	if tr.ParentClassId == -1 {
+		return
+	}
+
+	classSkill, tr, ok = getSkillClassParent(tr.ParentClassId, charLevel)
+	if ok {
+		all = append(all, classSkill...)
+	}
+	if tr.ParentClassId == -1 {
+		return
+	}
+
+	classSkill, tr, ok = getSkillClassParent(tr.ParentClassId, charLevel)
+	if ok {
+		all = append(all, classSkill...)
+	}
+	if tr.ParentClassId == -1 {
+		return
+	}
+
+	all = dubpicateSkillList(all)
+
+	for _, skills := range all {
+		AllSkills := Skill{
+			SkillId: skills.SkillId,
+			Level:   skills.SkillLvl,
+		}
+
+		client.CurrentChar.Skills = append(client.CurrentChar.Skills, AllSkills)
+	}
+}
+
+func getSkillClassParent(classId, char_level int) ([]TreesSkills, Trees, bool) {
+	var t []TreesSkills
+	for _, trees := range SkillTrees {
+		if trees.ClassId == classId {
+			if trees.ParentClassId == -1 {
+				return t, trees, false
+			}
+			for _, skill := range trees.Skills {
+				if skill.GetLevel >= char_level {
+					t = append(t, skill)
+				}
+			}
+			return t, trees, true
+		}
+	}
+	return t, Trees{}, false
 }
 
 /*
@@ -162,7 +287,7 @@ func GetMySkills(charId int32) []Skill {
 */
 
 func (c *Character) LoadSkills() {
-	c.Skills = map[int]AllSkill{}
+	c.Skills = []Skill{}
 	dbConn, err := db.GetConn()
 	if err != nil {
 		logger.Error.Panicln(err)
@@ -181,11 +306,7 @@ func (c *Character) LoadSkills() {
 			logger.Error.Panicln(err)
 		}
 
-		sk, ok := AllSkills[t]
-		if !ok {
-			logger.Error.Panicln("Скилл персонажа " + c.CharName + " не найден в мапе скиллов id: " + strconv.Itoa(t.Id) + " Level: " + strconv.Itoa(t.Lvl))
-		}
-		c.Skills[sk.SkillId] = sk //= append(c.Skills, sk)
+		//c.Skills[t.Id] = t.
 	}
 
 }
