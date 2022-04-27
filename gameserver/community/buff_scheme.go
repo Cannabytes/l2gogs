@@ -90,7 +90,7 @@ func createRegistryScheme(char_id int32, name string) (int, bool) {
 		return lastInsertId, false
 	}
 	defer dbConn.Release()
-	err = dbConn.QueryRow(context.Background(), `INSERT INTO "character_buffs_save_list" ("char_id", "name") VALUES ($1, $2) RETURNING id`, char_id, name).Scan(&lastInsertId)
+	err = dbConn.QueryRow(context.Background(), `INSERT INTO "character_scheme" ("char_id", "name") VALUES ($1, $2) RETURNING id`, char_id, name).Scan(&lastInsertId)
 	if err != nil {
 		logger.Error.Println(err)
 		return lastInsertId, false
@@ -107,7 +107,7 @@ func createSchemeListBuff(bufflist []*models.BuffUser, schemeId int) bool {
 	}
 	defer dbConn.Release()
 	buffcount := len(bufflist)
-	sql := `INSERT INTO "character_buffs_scheme" ("scheme_id", "skill_id", "skill_level") VALUES`
+	sql := `INSERT INTO "character_scheme_buffs" ("scheme_id", "skill_id", "skill_level") VALUES`
 	for index, buff := range bufflist {
 		sql += fmt.Sprintf("(%d, %d, %d)", schemeId, buff.Id, buff.Level)
 		if buffcount != index+1 {
