@@ -130,9 +130,9 @@ func LoadSkills() {
 }
 
 type Trees struct {
-	ClassId       int           `json:"classid"`
-	ParentClassId int           `json:"parent_class_id,omitempty"`
-	Skills        []TreesSkills `json:"skills"`
+	ClassId       int           `json:"classid"`                 // Id класса
+	ParentClassId int           `json:"parentClassId,omitempty"` // -1 означает что это отсутствие родительского класса
+	Skills        []TreesSkills `json:"skills"`                  //Скиллы класса
 }
 type TreesSkills struct {
 	Name         string `json:"name"`
@@ -164,33 +164,45 @@ func LoadSkillsTrees() {
 
 //Удаление дубликатов скиллов
 func dubpicateSkillList(SkillList []TreesSkills) []TreesSkills {
-	var unique []TreesSkills
-
-	skillGet := func(unique []TreesSkills, id int) (TreesSkills, int, bool) {
-		for index, skill := range unique {
-			if skill.SkillId == id {
-				return skill, index, true
-			}
-		}
-		return TreesSkills{}, 0, false
-	}
-
+	var uniqueSkillChar []TreesSkills
+	var userIdSkills []int
 	for _, skill := range SkillList {
-		uniskill, index, ok := skillGet(unique, skill.SkillId)
-		if ok { //Если найден такой скилл уже
-			if uniskill.SkillLvl > skill.SkillLvl {
-				unique = append(unique[:index], unique[index+1:]...)
-				unique = append(unique, skill)
-			}
-		} else {
-			unique = append(unique, skill)
-		}
+		userIdSkills = append(userIdSkills, skill.SkillId)
 	}
 
-	return unique
+	for _, skillId := range removeDuplicateInt(userIdSkills) {
+		skillinfo := maxSkillLevel(SkillList, skillId)
+		uniqueSkillChar = append(uniqueSkillChar, skillinfo)
+	}
+	return uniqueSkillChar
+}
+
+func removeDuplicateInt(intSlice []int) []int {
+	allKeys := make(map[int]bool)
+	list := []int{}
+	for _, item := range intSlice {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
+func maxSkillLevel(SkillList []TreesSkills, skillid int) TreesSkills {
+	msklvl := TreesSkills{}
+	for _, skill := range SkillList {
+		if skill.SkillId == skillid {
+			if skill.SkillLvl > msklvl.SkillLvl {
+				msklvl = skill
+			}
+		}
+	}
+	return msklvl
 }
 
 // GetLevelSkills Возвращает все скиллы персонажа, который соответствует уровню и классу
+// Необходимо эту функцию юзать при повышении уровня, и при загрузке персонажа в игру
 func GetLevelSkills(clientI interfaces.ReciverAndSender) {
 	client, ok := clientI.(*Client)
 	if !ok {
@@ -201,58 +213,49 @@ func GetLevelSkills(clientI interfaces.ReciverAndSender) {
 	charLevel := int(client.CurrentChar.Level)
 
 	var all []TreesSkills
-	classSkill, tr, ok := getSkillClassParent(classId, charLevel)
-	if ok {
-		all = append(all, classSkill...)
+	userClassSkill, parentClassId := getSkillClassParent(classId, charLevel)
+	all = append(all, userClassSkill...)
+	if parentClassId != -1 {
+		userClassSkill, parentClassId = getSkillClassParent(parentClassId, charLevel)
+		all = append(all, userClassSkill...)
+		if parentClassId != -1 {
+			userClassSkill, parentClassId = getSkillClassParent(parentClassId, charLevel)
+			all = append(all, userClassSkill...)
+		}
 	}
-	if tr.ParentClassId == -1 {
-		return
-	}
+	all = append(all, userClassSkill...)
 
-	classSkill, tr, ok = getSkillClassParent(tr.ParentClassId, charLevel)
-	if ok {
-		all = append(all, classSkill...)
-	}
-	if tr.ParentClassId == -1 {
-		return
-	}
-
-	classSkill, tr, ok = getSkillClassParent(tr.ParentClassId, charLevel)
-	if ok {
-		all = append(all, classSkill...)
-	}
-	if tr.ParentClassId == -1 {
-		return
-	}
-
-	all = dubpicateSkillList(all)
-
-	for _, skills := range all {
+	for _, skills := range dubpicateSkillList(all) {
 		AllSkills := Skill{
 			SkillId: skills.SkillId,
 			Level:   skills.SkillLvl,
 		}
-
 		client.CurrentChar.Skills = append(client.CurrentChar.Skills, AllSkills)
 	}
 }
 
-func getSkillClassParent(classId, char_level int) ([]TreesSkills, Trees, bool) {
-	var t []TreesSkills
+// Возвращает скиллы класса
+func getSkillClassParent(classId, char_level int) ([]TreesSkills, int) {
+	var uniqueTreesSkills []Trees
+	var uniqueSkills []TreesSkills
+	parent := -1
 	for _, trees := range SkillTrees {
 		if trees.ClassId == classId {
-			if trees.ParentClassId == -1 {
-				return t, trees, false
-			}
-			for _, skill := range trees.Skills {
-				if skill.GetLevel >= char_level {
-					t = append(t, skill)
-				}
-			}
-			return t, trees, true
+			parent = trees.ParentClassId
+			uniqueTreesSkills = append(uniqueTreesSkills, trees)
+			break
 		}
 	}
-	return t, Trees{}, false
+
+	for _, uniq := range uniqueTreesSkills {
+		for _, sk := range uniq.Skills {
+			if sk.SkillLvl <= char_level {
+				uniqueSkills = append(uniqueSkills, sk)
+			}
+		}
+	}
+
+	return uniqueSkills, parent
 }
 
 /*
