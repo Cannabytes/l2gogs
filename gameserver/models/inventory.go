@@ -727,8 +727,8 @@ func RemoveItem(character *Character, item *MyItem, count int64) (MyItem, int64,
 	return MyItem{}, 0, UpdateTypeModify, false
 }
 
-func (i *Inventory) ExistItemID(id int) (*MyItem, bool) {
-	for _, item := range i.Items {
+func ExistItemID(inventory Inventory, id int) (*MyItem, bool) {
+	for _, item := range inventory.Items {
 		if item.Id == id {
 			return &item, true
 		}

@@ -81,11 +81,9 @@ func Handler(client interfaces.ReciverAndSender) {
 			}
 
 		case 23:
-			//pkg, item := clientpackets.DropItem(client, data)
-			//client.Send(pkg)
-			//
-			//pkgInventoryUpdate := clientpackets.InventoryUpdate(client, &item, models.UpdateTypeRemove)
-			//client.Send(pkgInventoryUpdate)
+			item, modify := clientpackets.DropItem(client, data)
+			pkgInventoryUpdate := clientpackets.InventoryUpdate(client, item, modify)
+			client.EncryptAndSend(pkgInventoryUpdate)
 
 		case 193:
 			clientpackets.RequestObserverEnd(client, data)
