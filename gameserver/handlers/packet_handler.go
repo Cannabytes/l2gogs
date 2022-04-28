@@ -28,7 +28,7 @@ func Handler(client interfaces.ReciverAndSender) {
 		switch opcode {
 		case 0:
 			clientpackets.Logout(client, data)
-
+			return
 		case 26: //Запрос другому персонажу на желание торговать
 			clientpackets.TradeRequest(data, client)
 		case 85: //AnswerTradeRequest (если пользователь отвечает Да/Нет на предложение торговли)
@@ -126,8 +126,7 @@ func Handler(client interfaces.ReciverAndSender) {
 			clientpackets.UseItem(client, data)
 		case 87:
 			clientpackets.RequestRestart(data, client)
-			gameserver.CharOffline(client)
-			return
+			break
 		case 57:
 			clientpackets.RequestMagicSkillUse(data, client)
 		case 61:

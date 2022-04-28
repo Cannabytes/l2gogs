@@ -44,7 +44,6 @@ func CharOffline(client interfaces.ReciverAndSender) {
 	delete(OnlineCharacters.Char, client.GetCurrentChar().GetObjectId())
 	OnlineCharacters.Mu.Unlock()
 	client.GetCurrentChar().GetCurrentRegion().DeleteVisibleChar(client.GetCurrentChar())
-
 	client.GetCurrentChar().CloseChannels()
 	//todo close all character goroutine, save info in DB
 	logger.Info.Println("Socket Close For: ", client.GetCurrentChar().GetName())

@@ -91,7 +91,7 @@ func (c *Client) EncryptAndSend(data []byte) {
 
 	err := c.sendDataToSocket(data)
 	if err != nil {
-		logger.Error.Panicln("Пакет не отправлен, ошибка: " + err.Error())
+		logger.Error.Println("Пакет не отправлен:" + err.Error())
 	}
 }
 
