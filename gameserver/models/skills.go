@@ -1,52 +1,13 @@
 package models
 
 import (
-	"context"
 	"encoding/json"
 	"l2gogameserver/config"
 	"l2gogameserver/data/logger"
-	"l2gogameserver/db"
 	"l2gogameserver/gameserver/interfaces"
 	"os"
 )
 
-/*
-type Skill struct {
-	ID          int                `json:"id"`
-	Levels      int                `json:"levels"`
-	Name        string             `json:"name"`
-	Power       int                `json:"power"`
-	CastRange   int                `json:"castRange"`
-	CoolTime    int                `json:"coolTime"`
-	HitTime     int                `json:"hitTime"`
-	OverHit     bool               `json:"overHit"`
-	ReuseDelay  int                `json:"reuseDelay"`
-	OperateType skills.OperateType `json:"operateType"`
-	TargetType  targets.TargetType `json:"targetType"`
-	IsMagic     int                `json:"isMagic"`
-	MagicLvl    int                `json:"magicLvl"`
-	MpConsume1  int                `json:"mpConsume1"`
-	MpConsume2  int                `json:"mpConsume2"`
-}
-
-type SkillForParseJSON struct {
-	ID          int                `json:"id"`
-	Levels      int                `json:"levels"`
-	Name        string             `json:"name"`
-	Power       []int              `json:"power"`
-	CastRange   int                `json:"castRange"`
-	CoolTime    int                `json:"coolTime"`
-	HitTime     int                `json:"hitTime"`
-	OverHit     bool               `json:"overHit"`
-	ReuseDelay  int                `json:"reuseDelay"`
-	OperateType skills.OperateType `json:"operateType"`
-	TargetType  targets.TargetType `json:"targetType"`
-	IsMagic     int                `json:"isMagic"`
-	MagicLvl    []int              `json:"magicLvl"`
-	MpConsume1  []int              `json:"mpConsume1"`
-	MpConsume2  []int              `json:"mpConsume2"`
-}
-*/
 type Skill struct {
 	SkillName   string `json:"skill_name"`
 	SkillId     int    `json:"skill_id"`
@@ -87,14 +48,7 @@ type Skill struct {
 	OlympiadUse bool   `json:"olympiad_use"`
 }
 
-//var AllSkills map[Tuple]AllSkill
-
-//var AllSkills map[Tuple]Skill
-
-type Tuple struct {
-	Id  int
-	Lvl int
-}
+var AllSkills []*Skill
 
 func LoadSkills() {
 	if config.Get().Debug.EnabledSkills == false {
@@ -106,27 +60,19 @@ func LoadSkills() {
 	if err != nil {
 		logger.Error.Panicln("Failed to load config file " + err.Error())
 	}
-	var skillsJson []Skill
-	err = json.NewDecoder(file).Decode(&skillsJson)
+	err = json.NewDecoder(file).Decode(&AllSkills)
 	if err != nil {
 		logger.Error.Panicln("Failed to decode config file " + file.Name() + " " + err.Error())
 	}
+}
 
-	//AllSkills = make(map[Tuple]AllSkill)
-	//for _, v := range skillsJson {
-	//	fSkill := v
-	//	if v.Level > 1 {
-	//		for i := 0; i < v.Level; i++ {
-	//			fSkill.Level = i
-	//			AllSkills[Tuple{v.SkillId, i}] = fSkill
-	//		}
-	//	} else {
-	//		AllSkills[Tuple{v.SkillId, v.Level}] = fSkill
-	//	}
-	//}
-	//
-	//qw := AllSkills
-	//_ = qw
+func GetSkillDataInfo(skillId, skilllevel int) (*Skill, bool) {
+	for _, skill := range AllSkills {
+		if skill.SkillId == skillId && skill.Level == skilllevel {
+			return skill, true
+		}
+	}
+	return &Skill{}, false
 }
 
 type Trees struct {
@@ -138,8 +84,8 @@ type TreesSkills struct {
 	Name         string `json:"name"`
 	SkillId      int    `json:"skillId"`
 	SkillLvl     int    `json:"skillLvl"`
-	GetLevel     int    `json:"getLevel"`
-	Sp           int    `json:"sp"`
+	GetLevel     int    `json:"getLevel,omitempty"`
+	Sp           int    `json:"sp,omitempty"`
 	AutoLearning bool   `json:"autoLearning,omitempty"`
 	LearnedByNpc bool   `json:"learnedByNpc,omitempty"`
 }
@@ -164,6 +110,7 @@ func LoadSkillsTrees() {
 
 //Удаление дубликатов скиллов
 func dubpicateSkillList(SkillList []TreesSkills) []TreesSkills {
+	//var ok bool
 	var uniqueSkillChar []TreesSkills
 	var userIdSkills []int
 	for _, skill := range SkillList {
@@ -226,12 +173,10 @@ func GetLevelSkills(clientI interfaces.ReciverAndSender) {
 	all = append(all, userClassSkill...)
 
 	for _, skills := range dubpicateSkillList(all) {
-		AllSkills := Skill{
-			SkillId: skills.SkillId,
-			Level:   skills.SkillLvl,
-		}
-		client.CurrentChar.Skills = append(client.CurrentChar.Skills, AllSkills)
+		s, _ := GetSkillDataInfo(skills.SkillId, skills.SkillLvl)
+		client.CurrentChar.Skills = append(client.CurrentChar.Skills, *s)
 	}
+
 }
 
 // Возвращает скиллы класса
@@ -290,26 +235,26 @@ func GetMySkills(charId int32) []Skill {
 */
 
 func (c *Character) LoadSkills() {
-	c.Skills = []Skill{}
-	dbConn, err := db.GetConn()
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
-	defer dbConn.Release()
+	//c.Skills = []Skill{}
+	//dbConn, err := db.GetConn()
+	//if err != nil {
+	//	logger.Error.Panicln(err)
+	//}
+	//defer dbConn.Release()
+	//
+	//rows, err := dbConn.Query(context.Background(), "SELECT skill_id,skill_level FROM character_skills WHERE char_id=$1 AND class_id=$2", c.ObjectId, c.ClassId)
+	//if err != nil {
+	//	logger.Error.Panicln(err)
+	//}
 
-	rows, err := dbConn.Query(context.Background(), "SELECT skill_id,skill_level FROM character_skills WHERE char_id=$1 AND class_id=$2", c.ObjectId, c.ClassId)
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
+	//for rows.Next() {
+	//var t Tuple
+	//err = rows.Scan(&t.Id, &t.Lvl)
+	//if err != nil {
+	//	logger.Error.Panicln(err)
+	//}
 
-	for rows.Next() {
-		var t Tuple
-		err = rows.Scan(&t.Id, &t.Lvl)
-		if err != nil {
-			logger.Error.Panicln(err)
-		}
-
-		//c.Skills[t.Id] = t.
-	}
+	//c.Skills[t.Id] = t.
+	//}
 
 }

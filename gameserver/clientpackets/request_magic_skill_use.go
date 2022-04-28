@@ -9,16 +9,21 @@ import (
 )
 
 func RequestMagicSkillUse(data []byte, clientI interfaces.ReciverAndSender) {
+
+	var packet = packets.NewReader(data)
+
+	magicId := int(packet.ReadInt32())           // Identifier of the used skill
+	ctrlPressed := packet.ReadInt32() != 0       // True if it's a ForceAttack : Ctrl pressed
+	shiftPressed := packet.ReadSingleByte() != 0 // True if Shift pressed
+
+	SkillCast(clientI, magicId, ctrlPressed, shiftPressed)
+}
+
+func SkillCast(clientI interfaces.ReciverAndSender, magicId int, ctrlPressed bool, shiftPressed bool) {
 	client, ok := clientI.(*models.Client)
 	if !ok {
 		return
 	}
-
-	var packet = packets.NewReader(data)
-
-	magicId := packet.ReadInt32()                // Identifier of the used skill
-	ctrlPressed := packet.ReadInt32() != 0       // True if it's a ForceAttack : Ctrl pressed
-	shiftPressed := packet.ReadSingleByte() != 0 // True if Shift pressed
 
 	buffer := packets.Get()
 	defer packets.Put(buffer)
@@ -39,13 +44,20 @@ func RequestMagicSkillUse(data []byte, clientI interfaces.ReciverAndSender) {
 		return
 	}
 
-	skill := client.CurrentChar.Skills[int(magicId)]
-	//if !exist {
+	var skill models.Skill
+	for _, getskill := range client.CurrentChar.Skills {
+		if getskill.SkillId == int(magicId) {
+			skill = getskill
+			break
+		}
+	}
+
+	//if если скилла нет {
 	// todo тут еще идут проверки, возможно это кастомный? скилл или скилл трансформы и если нет то фейл
-	pkg := serverpackets.ActionFailed(client)
-	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
-	client.Send(buffer.Bytes())
-	//return
+	//	pkg := serverpackets.ActionFailed(client)
+	//	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
+	//	client.Send(buffer.Bytes())
+	//	return
 	//}
 
 	_, _, _ = magicId, ctrlPressed, shiftPressed
@@ -76,7 +88,7 @@ func RequestMagicSkillUse(data []byte, clientI interfaces.ReciverAndSender) {
 	pkg2 := serverpackets.NewMagicSkillUse(client, skill, ctrlPressed, shiftPressed)
 	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg2))
 
-	pkg = serverpackets.SetupGauge(client)
+	pkg := serverpackets.SetupGauge(client)
 	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
 	client.Send(buffer.Bytes())
 }

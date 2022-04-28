@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"l2gogameserver/data"
 	"l2gogameserver/data/logger"
 	"l2gogameserver/db"
@@ -166,8 +165,8 @@ func (c *Character) ListenSkillQueue() {
 	for {
 		select {
 		case res := <-c.SkillQueue:
-			fmt.Println("SKILL V QUEUE")
-			fmt.Println(res)
+			logger.Info.Println("SKILL V QUEUE")
+			logger.Info.Println(res.Skill.SkillId)
 		}
 	}
 }
@@ -521,4 +520,13 @@ func (c *Character) CloseChannels() {
 
 func (c *Character) GetClassId() int32 {
 	return c.ClassId
+}
+
+func (c *Character) GetSkillInfo(skill_id int) Skill {
+	for _, skill := range c.Skills {
+		if skill.SkillId == skill_id {
+			return skill
+		}
+	}
+	return Skill{}
 }
