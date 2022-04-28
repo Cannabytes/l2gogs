@@ -1,6 +1,7 @@
 package serverpackets
 
 import (
+	"l2gogameserver/data"
 	"l2gogameserver/gameserver/interfaces"
 	"l2gogameserver/gameserver/models"
 	"l2gogameserver/packets"
@@ -11,6 +12,9 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 	if !ok {
 		return []byte{}
 	}
+	character.GetRefreshStats()
+	stat := &character.Stats
+
 	buffer := packets.Get()
 	defer packets.Put(buffer)
 
@@ -35,12 +39,12 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 	buffer.WriteQ(int64(character.Exp))                                                 //exp
 	buffer.WriteF(character.GetPercentFromCurrentLevel(character.Exp, character.Level)) //percent
 
-	buffer.WriteD(int32(character.Stats.STR)) //str
-	buffer.WriteD(int32(character.Stats.DEX)) //dex
-	buffer.WriteD(int32(character.Stats.CON)) //con
-	buffer.WriteD(int32(character.Stats.INT)) //int
-	buffer.WriteD(int32(character.Stats.WIT)) //wit
-	buffer.WriteD(int32(character.Stats.MEN)) //men
+	buffer.WriteD(int32(stat.STR)) //str
+	buffer.WriteD(int32(stat.DEX)) //dex
+	buffer.WriteD(int32(stat.CON)) //con
+	buffer.WriteD(int32(stat.INT)) //int
+	buffer.WriteD(int32(stat.WIT)) //wit
+	buffer.WriteD(int32(stat.MEN)) //men
 
 	buffer.WriteD(character.MaxHp) //Max hp //TODO
 
@@ -73,14 +77,14 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 	buffer.WriteD(0) //talisman slot
 	buffer.WriteD(0) //Cloack
 
-	buffer.WriteD(4)                   //patack //TODO
-	buffer.WriteD(330)                 //atackSpeed
-	buffer.WriteD(character.GetPDef()) //pdef
-	buffer.WriteD(33)                  //evasionRate
-	buffer.WriteD(34)                  //accuracy //TODO
-	buffer.WriteD(44)                  //critHit
-	buffer.WriteD(3)                   //Matack
-	buffer.WriteD(213)                 //M atackSpped
+	buffer.WriteD(int32(stat.BasePAtk))                                                                                                                                                    //patack //TODO
+	buffer.WriteD(int32(stat.BasePAtkSpd))                                                                                                                                                 //atackSpeed
+	buffer.WriteD(int32(data.CalcInt(stat.BasePDef.PDef, stat.BasePDef.Gloves, stat.BasePDef.Legs, stat.BasePDef.Underwear, stat.BasePDef.Feet, stat.BasePDef.Chest, stat.BasePDef.Head))) //pdef
+	buffer.WriteD(33)                                                                                                                                                                      //evasionRate
+	buffer.WriteD(34)                                                                                                                                                                      //accuracy //TODO
+	buffer.WriteD(int32(stat.BaseCritRate))                                                                                                                                                //critHit
+	buffer.WriteD(int32(stat.BaseMAtk))                                                                                                                                                    //Matack
+	buffer.WriteD(25)                                                                                                                                                                      //M atackSpped
 
 	buffer.WriteD(330) //patackSpeed again?
 

@@ -69,7 +69,18 @@ type MyItem struct {
 }
 
 type Inventory struct {
-	Items []MyItem
+	Items   []MyItem
+	IsEquip MyItem
+}
+
+// IsEquipWeapon Возращает информацию о экиперованном оружии
+func (i Inventory) IsEquipWeapon() (MyItem, bool) {
+	for _, item := range i.Items {
+		if item.Loc == PaperdollLoc && item.ItemType == items.Weapon {
+			return item, true
+		}
+	}
+	return MyItem{}, false
 }
 
 func RestoreVisibleInventory(charId int32) [26]MyItem {

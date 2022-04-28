@@ -228,11 +228,13 @@ func (c *Character) Load() {
 	c.Inventory = GetMyItems(c.ObjectId)
 	c.Paperdoll = RestoreVisibleInventory(c.ObjectId)
 	c.LoadCharactersMacros()
+
 	for _, v := range &c.Paperdoll {
 		if v.ObjId != 0 {
 			c.AddBonusStat(v.BonusStats)
 		}
 	}
+	//Установка классовых статов
 	c.Stats = AllStats[int(c.ClassId)].StaticData //todo а для чего BaseClass ??
 
 	reg := GetRegion(c.Coordinates.X, c.Coordinates.Y, c.Coordinates.Z)
@@ -316,38 +318,88 @@ func (c *Character) RemoveBonusStat(s []items.ItemBonusStat) {
 	c.BonusStats = news
 }
 
-func (c *Character) GetPDef() int32 {
-	var base float64
-	if c.Paperdoll[PAPERDOLL_FEET].ObjId == 0 {
-		base = float64(c.Stats.BasePDef.Feet)
-	}
-	if c.Paperdoll[PAPERDOLL_CHEST].ObjId == 0 {
-		base += float64(c.Stats.BasePDef.Chest)
-	}
-	if c.Paperdoll[PAPERDOLL_CLOAK].ObjId == 0 {
-		base += float64(c.Stats.BasePDef.Cloak)
-	}
-	if c.Paperdoll[PAPERDOLL_HEAD].ObjId == 0 {
-		base += float64(c.Stats.BasePDef.Head)
-	}
-	if c.Paperdoll[PAPERDOLL_GLOVES].ObjId == 0 {
-		base += float64(c.Stats.BasePDef.Gloves)
-	}
-	if c.Paperdoll[PAPERDOLL_LEGS].ObjId == 0 {
-		base += float64(c.Stats.BasePDef.Legs)
-	}
-	if c.Paperdoll[PAPERDOLL_UNDER].ObjId == 0 {
-		base += float64(c.Stats.BasePDef.Underwear)
-	}
-
-	for _, v := range c.BonusStats {
-		if v.Type == "physical_defense" {
-			base += v.Val
+//Обновление статов персонажа
+func (c *Character) GetRefreshStats() {
+	c.Stats = AllStats[int(c.ClassId)].StaticData
+	for _, v := range &c.Paperdoll {
+		if v.ObjId != 0 {
+			c.AddBonusStat(v.BonusStats)
+			c.BonusStatCals(v)
 		}
 	}
-	base *= float64(c.Level+89) / 100
 
-	return int32(base)
+	//c.getWeaponEquip()
+	//c.Stats.BasePDef.PDef = int(c.GetPDefEquip())
+}
+
+func (c *Character) getWeaponEquip() {
+	//item, ok := c.Inventory.IsEquipWeapon()
+	//if !ok {
+	//	return
+	//}
+
+}
+
+// Кол-во п.дефа который дает весь надетый шмот
+//func (c *Character) GetPDefEquip() int32 {
+//var base float64
+////if c.Paperdoll[PAPERDOLL_FEET].IsEquipped() == 1 {
+////	base = float64(c.Stats.BasePDef.Feet)
+////}
+////if c.Paperdoll[PAPERDOLL_CHEST].IsEquipped() == 1 {
+////	base += float64(c.Stats.BasePDef.Chest)
+////}
+////if c.Paperdoll[PAPERDOLL_CLOAK].IsEquipped() == 1 {
+////	base += float64(c.Stats.BasePDef.Cloak)
+////}
+////if c.Paperdoll[PAPERDOLL_HEAD].IsEquipped() == 1 {
+////	base += float64(c.Stats.BasePDef.Head)
+////}
+////if c.Paperdoll[PAPERDOLL_GLOVES].IsEquipped() == 1 {
+////	base += float64(c.Stats.BasePDef.Gloves)
+////}
+////if c.Paperdoll[PAPERDOLL_LEGS].IsEquipped() == 1 {
+////	base += float64(c.Stats.BasePDef.Legs)
+////}
+////if c.Paperdoll[PAPERDOLL_UNDER].IsEquipped() == 1 {
+////	base += float64(c.Stats.BasePDef.Underwear)
+////}
+//
+//for _, v := range c.BonusStats {
+//	if v.Type == "physical_defense" {
+//		base += v.Val
+//	}
+//}
+//
+//base *= float64(c.Level+89) / 100
+//
+//return int32(base)
+//}
+
+func (c *Character) BonusStatCals(item MyItem) {
+	for _, v := range item.BonusStats {
+		if v.Type == "physical_damage" {
+			c.Stats.BasePAtk += int(v.Val)
+		}
+		if v.Type == "physical_defense" {
+			c.Stats.BasePDef.PDef += int(v.Val)
+		}
+		if v.Type == "magical_damage" {
+			c.Stats.BaseMAtk += int(v.Val)
+		}
+		if v.Type == "magical_defense" {
+			c.Stats.BaseMDef.MDef += int(v.Val)
+		}
+		if v.Type == "mp_bonus" {
+			c.MaxMp += int32(v.Val)
+		}
+		if v.Type == "critical" {
+			c.Stats.BaseCritRate += int(v.Val)
+		}
+		if v.Type == "attack_speed" {
+			c.Stats.BasePAtkSpd += int(v.Val)
+		}
+	}
 }
 
 func (c *Character) GetInventoryLimit() int16 {

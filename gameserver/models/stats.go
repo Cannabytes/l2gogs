@@ -64,6 +64,7 @@ type (
 		Rfinger int
 		Lfinger int
 		Neck    int
+		MDef    int
 	}
 	BasePDef struct {
 		Chest     int
@@ -73,6 +74,7 @@ type (
 		Gloves    int
 		Underwear int
 		Cloak     int
+		PDef      int
 	}
 	CreationPoint struct {
 		X int

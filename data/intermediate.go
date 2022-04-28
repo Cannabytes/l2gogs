@@ -13,3 +13,12 @@ func StrToInt(value string) int {
 	}
 	return nvalue
 }
+
+// CalcInt Общее количество всех чисел разом
+func CalcInt(args ...int) int {
+	total := 0
+	for _, v := range args {
+		total += v
+	}
+	return total
+}
