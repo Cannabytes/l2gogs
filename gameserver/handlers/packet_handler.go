@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"l2gogameserver/data/logger"
 	"l2gogameserver/gameserver"
 	"l2gogameserver/gameserver/broadcast"
@@ -19,9 +18,11 @@ func Handler(client interfaces.ReciverAndSender) {
 		opcode, data, err := client.Receive()
 		//defer kickClient(client)
 		if err != nil {
-			fmt.Println(err)
-			gameserver.CharOffline(client)
-			break // todo  return ?
+			if client.GetCurrentChar().GetObjectId() != 0 {
+				gameserver.CharOffline(client)
+			}
+			return
+			//break // todo  return ?
 		}
 		logger.Info.Println("Client->Server: #", opcode, packets.GetNamePacket(opcode))
 		switch opcode {
@@ -81,7 +82,7 @@ func Handler(client interfaces.ReciverAndSender) {
 			}
 
 		case 23:
-			item, modify := clientpackets.DropItem(client, data)
+			_, item, modify := clientpackets.DropItem(client, data)
 			pkgInventoryUpdate := clientpackets.InventoryUpdate(client, item, modify)
 			client.EncryptAndSend(pkgInventoryUpdate)
 
@@ -125,6 +126,8 @@ func Handler(client interfaces.ReciverAndSender) {
 			clientpackets.UseItem(client, data)
 		case 87:
 			clientpackets.RequestRestart(data, client)
+			gameserver.CharOffline(client)
+			return
 		case 57:
 			clientpackets.RequestMagicSkillUse(data, client)
 		case 61:

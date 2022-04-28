@@ -30,5 +30,5 @@ func RequestRestart(data []byte, clientI interfaces.ReciverAndSender) {
 	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg2))
 
 	client.Send(buffer.Bytes())
-	packets.Put(buffer)
+	//packets.Put(buffer)
 }

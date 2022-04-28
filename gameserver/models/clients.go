@@ -94,6 +94,7 @@ func (c *Client) EncryptAndSend(data []byte) {
 		logger.Error.Panicln("Пакет не отправлен, ошибка: " + err.Error())
 	}
 }
+
 func (c *Client) Send(d []byte) {
 	if len(d) == 0 {
 		logger.Info.Println("Пакет пуст")
