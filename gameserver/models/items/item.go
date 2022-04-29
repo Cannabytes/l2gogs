@@ -58,7 +58,7 @@ type Item struct {
 	ForNpc                 bool                      `json:"for_npc"`
 	IsOlympiadCanUse       bool                      `json:"is_olympiad_can_use"`
 	IsPremium              bool                      `json:"is_premium"`
-	BonusStats             []ItemBonusStat           `json:"stats"`
+	BonusStats             []ItemBonusStat           `json:"stats,omitempty"`
 	DefaultAction          DefaultAction             `json:"default_action"`
 	InitialCount           int                       `json:"initial_count"`
 	ImmediateEffect        int                       `json:"immediate_effect"`
@@ -87,15 +87,6 @@ var AllItems map[int]Item
 func LoadItems() {
 	AllItems = make(map[int]Item)
 	loadItems()
-}
-
-func GetItemInfo(id int) (Item, bool) {
-	for _, item := range AllItems {
-		if item.Id == id {
-			return item, true
-		}
-	}
-	return Item{}, false
 }
 
 func loadItems() {
@@ -134,7 +125,18 @@ func (i *Item) removeEmptyStats() {
 func (i *Item) IsStackable() bool {
 	return i.ConsumeType == 0
 }
+
 func GetItemFromStorage(itemId int) (item Item, ok bool) {
 	item, ok = AllItems[itemId]
 	return
+}
+
+// GetItemInfo Возвращает информацию о предмете
+func GetItemInfo(id int) (Item, bool) {
+	for _, item := range AllItems {
+		if item.Id == id {
+			return item, true
+		}
+	}
+	return Item{}, false
 }

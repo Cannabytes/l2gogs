@@ -21,7 +21,7 @@ func ItemList(clientI interfaces.ReciverAndSender) []byte {
 	buffer.WriteH(int16(len(myItems))) // количество всех предметов в инвентаре и на персонаже
 
 	for i := range myItems {
-		e := &myItems[i]
+		e := myItems[i]
 		buffer.WriteD(e.ObjId)              // уникальный object_id из бд
 		buffer.WriteD(int32(e.Id))          // id предмета в клиенте
 		buffer.WriteD(e.LocData)            // номер ячейки в инвентаре или на персонаже, где находится предмет

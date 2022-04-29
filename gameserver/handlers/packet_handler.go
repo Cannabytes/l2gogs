@@ -29,6 +29,8 @@ func Handler(client interfaces.ReciverAndSender) {
 		case 0:
 			clientpackets.Logout(client, data)
 			return
+		case 116: //SendBypassBuildCmd
+			clientpackets.SendBypassBuildCmd(data, client)
 		case 26: //Запрос другому персонажу на желание торговать
 			clientpackets.TradeRequest(data, client)
 		case 85: //AnswerTradeRequest (если пользователь отвечает Да/Нет на предложение торговли)

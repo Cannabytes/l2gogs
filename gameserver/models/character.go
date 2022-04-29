@@ -10,7 +10,6 @@ import (
 	"l2gogameserver/gameserver/models/items"
 	"l2gogameserver/gameserver/models/race"
 	"l2gogameserver/utils"
-	"log"
 	"net"
 
 	"sync"
@@ -256,7 +255,7 @@ func (c *Character) Load() {
 func (c *Character) Shadow() {
 	for {
 		for i := range c.Inventory.Items {
-			v := &c.Inventory.Items[i]
+			v := c.Inventory.Items[i]
 			if v.Item.Durability > 0 && v.Loc == PaperdollLoc {
 				var iup IUP
 				iup.ObjId = v.ObjId
@@ -322,10 +321,11 @@ func (c *Character) RemoveBonusStat(s []items.ItemBonusStat) {
 }
 
 // GetRefreshStats Обновление статов персонажа
+// Берется статы из оружия, брони.
+// TODO: Скиллы и бижа не учитывается
 func (c *Character) GetRefreshStats() {
 	c.Stats = AllStats[int(c.ClassId)].StaticData
 	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level]
-
 	c.MaxMp = int32(LvlUpgain.Mp)
 	c.MaxHp = int32(LvlUpgain.Hp)
 	c.CurHp = int32(LvlUpgain.Cp)
@@ -333,19 +333,9 @@ func (c *Character) GetRefreshStats() {
 	for _, v := range &c.Paperdoll {
 		if v.ObjId != 0 {
 			c.AddBonusStat(v.BonusStats)
-			c.BonusStatCals(v, LvlUpgain)
+			c.BonusStatCals(v)
 		}
 	}
-
-	//c.getWeaponEquip()
-	//c.Stats.BasePDef.PDef = int(c.GetPDefEquip())
-}
-
-func (c *Character) getWeaponEquip() {
-	//item, ok := c.Inventory.IsEquipWeapon()
-	//if !ok {
-	//	return
-	//}
 
 }
 
@@ -385,8 +375,8 @@ func (c *Character) getWeaponEquip() {
 //return int32(base)
 //}
 
-func (c *Character) BonusStatCals(item MyItem, LvlUpgain LvlUpgainData) {
-	log.Println(item.Id, item.Name)
+// Сложение всех статов
+func (c *Character) BonusStatCals(item MyItem) {
 	for _, v := range item.BonusStats {
 		if v.Type == "physical_damage" {
 			c.Stats.BasePAtk += int(v.Val)
@@ -513,7 +503,7 @@ func (c *Character) SaveFirstInGamePlayer() {
 //ExistItemInInventory Возвращает ссылку на Item если он есть в инвентаре
 func (c *Character) ExistItemInInventory(objectItemId int32) *MyItem {
 	for i := range c.Inventory.Items {
-		item := &c.Inventory.Items[i]
+		item := c.Inventory.Items[i]
 		if item.ObjId == objectItemId {
 			return item
 		}

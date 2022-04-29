@@ -163,7 +163,7 @@ func UserClear(client interfaces.CharacterI) bool {
 //Информация о том какие предметы будем удалять из инвентарей, и какие предметы будем добавлять
 type UpdateTradeData struct {
 	Player     interfaces.CharacterI //Над каким персонажем производятся действия
-	Item       models.MyItem         //Предмет
+	Item       *models.MyItem        //Предмет
 	Count      int64                 //Кол-во
 	UpdateType int16
 }

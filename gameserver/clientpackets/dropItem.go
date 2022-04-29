@@ -8,10 +8,10 @@ import (
 	"l2gogameserver/packets"
 )
 
-func DropItem(clientI interfaces.ReciverAndSender, data []byte) ([]byte, models.MyItem, int16) {
+func DropItem(clientI interfaces.ReciverAndSender, data []byte) ([]byte, *models.MyItem, int16) {
 	client, ok := clientI.(*models.Client)
 	if !ok {
-		return nil, models.MyItem{}, 0
+		return nil, &models.MyItem{}, 0
 	}
 
 	var read = packets.NewReader(data)
@@ -25,7 +25,7 @@ func DropItem(clientI interfaces.ReciverAndSender, data []byte) ([]byte, models.
 	item, ok := models.ExistItemObject(client.CurrentChar, objectId, count)
 	if !ok {
 		logger.Error.Println("Объект предмета не найден ID OBJECT:", objectId)
-		return []byte{}, models.MyItem{}, 2
+		return []byte{}, &models.MyItem{}, 2
 	}
 	nItem, _, updtype, ok := models.RemoveItem(client.CurrentChar, item, count)
 
