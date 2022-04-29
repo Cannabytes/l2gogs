@@ -101,9 +101,24 @@ func (i Inventory) IsEquipWeapon() (*MyItem, bool) {
 	return &MyItem{}, false
 }
 
-// AddItem Добавление предмета в инвентарь
-func (i *Inventory) AddItem(item *MyItem) {
-	i.Items = append(i.Items, item)
+// AddItem Добавление предмета в инвентарь, возвращает модификатор действий
+func (i *Inventory) AddItem(item *MyItem) (*MyItem, int16) {
+	_, indexObject, isItemInventory := i.ExistItemID(item.Id)
+
+	if isItemInventory == false { //Если предмет не найден в инвентаре
+		i.Items = append(i.Items, item)
+		return item, UpdateTypeAdd
+	}
+
+	//Если предмет стакуем
+	if item.ConsumeType == consumeType.Stackable || item.ConsumeType == consumeType.Asset {
+		i.Items[indexObject].Count += item.Count
+		return i.Items[indexObject], UpdateTypeModify
+	} else { //Если не стакуется, тогда отдельно добавляем предмет
+		i.Items = append(i.Items, item)
+		return item, UpdateTypeAdd
+	}
+
 }
 
 //Получение всех ID предметов, которые экиперованы на персонаже
@@ -489,6 +504,7 @@ func equipItemAndRecord(selectedItem *MyItem, character *Character) {
 	}
 }
 
+//TODO: Всю эту функцию нужно переписать по человечески, она явно тупит и в ней нехватает обработки locdata
 func setPaperdollItem(slot uint8, selectedItem *MyItem, character *Character) {
 	// eсли selectedItem nil, то ищем предмет которых находиться в slot
 	// переносим его в инвентарь, убираем бонусы этого итема у персонажа
@@ -771,13 +787,14 @@ func RemoveItem(character *Character, item *MyItem, count int64) (*MyItem, int64
 	return &MyItem{}, 0, UpdateTypeModify, false
 }
 
-func ExistItemID(inventory Inventory, id int) (*MyItem, bool) {
-	for _, item := range inventory.Items {
-		if item.Id == id {
-			return item, true
+// ExistItemID Функция проверяет есть ли данный предмет в инвентаре, если есть, возращает сам объект, и его индекс
+func (i *Inventory) ExistItemID(itemid int) (*MyItem, int, bool) {
+	for index, item := range i.Items {
+		if item.Id == itemid {
+			return item, index, true
 		}
 	}
-	return &MyItem{}, false
+	return &MyItem{}, 0, false
 }
 
 // Сохранение инвентаря в базе данных

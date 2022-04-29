@@ -6,6 +6,7 @@ import (
 	"l2gogameserver/gameserver/interfaces"
 	"l2gogameserver/gameserver/models"
 	"l2gogameserver/gameserver/serverpackets"
+	"log"
 )
 
 func IsAdmin() {
@@ -13,6 +14,7 @@ func IsAdmin() {
 }
 
 func Command(client interfaces.ReciverAndSender, commandArr []string) {
+	log.Println(commandArr)
 	command := commandArr[0]
 	//summon - вызвать предмет
 	if command == "summon" {
@@ -21,6 +23,7 @@ func Command(client interfaces.ReciverAndSender, commandArr []string) {
 	}
 }
 
+//Когда админ в ALT+G призывает предмет
 func itemSummon(clientInterface interfaces.ReciverAndSender, itemid int, count int64) {
 	client := clientInterface.(*models.Client)
 	item, ok := models.NewItemCreate(client.CurrentChar, itemid, count)
@@ -28,10 +31,9 @@ func itemSummon(clientInterface interfaces.ReciverAndSender, itemid int, count i
 		logger.Error.Println("Предмет не создался")
 		return
 	}
-	client.CurrentChar.Inventory.AddItem(item)
-	serverpackets.InventoryUpdate(item, models.UpdateTypeModify)
-
+	item, updateType := client.CurrentChar.Inventory.AddItem(item)
 	//for _, myItem := range client.CurrentChar.Inventory.Items {
-	//log.Println(myItem.Name, myItem.Count)
+	//	log.Println(item.Name, myItem.ObjId)
 	//}
+	client.EncryptAndSend(serverpackets.InventoryUpdate(item, updateType))
 }
