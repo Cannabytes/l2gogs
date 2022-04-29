@@ -83,6 +83,8 @@ func (i Inventory) IsEquipWeapon() (MyItem, bool) {
 	return MyItem{}, false
 }
 
+//Получение всех ID предметов, которые экиперованы на персонаже
+//TODO: L22 лучше переписать функцю, и брать экиперованную с массива своих вещей
 func RestoreVisibleInventory(charId int32) [26]MyItem {
 	dbConn, err := db.GetConn()
 	if err != nil {
@@ -179,12 +181,20 @@ func GetMyItems(charId int32) Inventory {
 			} else if itm.IsArmor() {
 				itm.AttributeDefend = getAttributeForArmor(itm.ObjId)
 			}
-
 			inventory.Items = append(inventory.Items, itm)
 		}
 	}
-
+	RefreshLocData(inventory.Items)
 	return inventory
+}
+
+// RefreshLocData Сброс LocData всех предметов
+func RefreshLocData(Items []MyItem) []MyItem {
+	for _, item := range Items {
+		item.LocData = -1
+		item.LocData = getFirstEmptySlot(Items)
+	}
+	return Items
 }
 
 func getAttributeForWeapon(objId int32) (attribute.Attribute, int) {

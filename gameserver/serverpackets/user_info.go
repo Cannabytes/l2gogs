@@ -149,8 +149,8 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 	buffer.WriteD(character.ClassId) //	classId
 	buffer.WriteD(0)                 // special effects? circles around player...
 
-	buffer.WriteD(50) //MaxCP
-	buffer.WriteD(50) //CurrentCp
+	buffer.WriteD(character.MaxCp) //MaxCP
+	buffer.WriteD(character.CurCp) //CurrentCp
 
 	buffer.WriteSingleByte(0) //mounted air
 	buffer.WriteSingleByte(0) //team Id

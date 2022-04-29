@@ -10,6 +10,7 @@ import (
 	"l2gogameserver/gameserver/models/items"
 	"l2gogameserver/gameserver/models/race"
 	"l2gogameserver/utils"
+	"log"
 	"net"
 
 	"sync"
@@ -25,6 +26,8 @@ type (
 		CurHp         int32
 		MaxMp         int32
 		CurMp         int32
+		MaxCp         int32
+		CurCp         int32
 		Face          int32
 		HairStyle     int32
 		HairColor     int32
@@ -318,13 +321,19 @@ func (c *Character) RemoveBonusStat(s []items.ItemBonusStat) {
 	c.BonusStats = news
 }
 
-//Обновление статов персонажа
+// GetRefreshStats Обновление статов персонажа
 func (c *Character) GetRefreshStats() {
 	c.Stats = AllStats[int(c.ClassId)].StaticData
+	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level]
+
+	c.MaxMp = int32(LvlUpgain.Mp)
+	c.MaxHp = int32(LvlUpgain.Hp)
+	c.CurHp = int32(LvlUpgain.Cp)
+
 	for _, v := range &c.Paperdoll {
 		if v.ObjId != 0 {
 			c.AddBonusStat(v.BonusStats)
-			c.BonusStatCals(v)
+			c.BonusStatCals(v, LvlUpgain)
 		}
 	}
 
@@ -376,7 +385,8 @@ func (c *Character) getWeaponEquip() {
 //return int32(base)
 //}
 
-func (c *Character) BonusStatCals(item MyItem) {
+func (c *Character) BonusStatCals(item MyItem, LvlUpgain LvlUpgainData) {
+	log.Println(item.Id, item.Name)
 	for _, v := range item.BonusStats {
 		if v.Type == "physical_damage" {
 			c.Stats.BasePAtk += int(v.Val)
@@ -390,16 +400,17 @@ func (c *Character) BonusStatCals(item MyItem) {
 		if v.Type == "magical_defense" {
 			c.Stats.BaseMDef.MDef += int(v.Val)
 		}
-		if v.Type == "mp_bonus" {
-			c.MaxMp += int32(v.Val)
-		}
 		if v.Type == "critical" {
 			c.Stats.BaseCritRate += int(v.Val)
 		}
 		if v.Type == "attack_speed" {
 			c.Stats.BasePAtkSpd += int(v.Val)
 		}
+		if v.Type == "mp_bonus" {
+			c.MaxMp += int32(v.Val)
+		}
 	}
+
 }
 
 func (c *Character) GetInventoryLimit() int16 {
