@@ -5,6 +5,7 @@ import (
 	"l2gogameserver/data/logger"
 	"l2gogameserver/gameserver/interfaces"
 	"l2gogameserver/gameserver/models"
+	"l2gogameserver/gameserver/serverpackets"
 )
 
 func IsAdmin() {
@@ -28,6 +29,8 @@ func itemSummon(clientInterface interfaces.ReciverAndSender, itemid int, count i
 		return
 	}
 	client.CurrentChar.Inventory.AddItem(item)
+	serverpackets.InventoryUpdate(item, models.UpdateTypeModify)
+
 	//for _, myItem := range client.CurrentChar.Inventory.Items {
 	//log.Println(myItem.Name, myItem.Count)
 	//}

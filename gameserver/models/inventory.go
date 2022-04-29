@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v4"
 	"l2gogameserver/data/logger"
 	"l2gogameserver/db"
@@ -13,7 +14,6 @@ import (
 	"l2gogameserver/gameserver/models/items/consumeType"
 	"l2gogameserver/gameserver/models/items/etcItemType"
 	"l2gogameserver/gameserver/models/items/weaponType"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -86,7 +86,7 @@ func NewItemCreate(character *Character, itemid int, count int64) (*MyItem, bool
 		ObjId:   idfactory.GetNext(),
 		LocData: getFirstEmptySlot(character.Inventory.Items),
 		Count:   count,
-		Loc:     PaperdollLoc,
+		Loc:     InventoryLoc,
 	}
 	return &newItem, true
 }
@@ -104,9 +104,6 @@ func (i Inventory) IsEquipWeapon() (*MyItem, bool) {
 // AddItem Добавление предмета в инвентарь
 func (i *Inventory) AddItem(item *MyItem) {
 	i.Items = append(i.Items, item)
-	for _, myItem := range i.Items {
-		log.Println(myItem.Name, myItem.Count)
-	}
 }
 
 //Получение всех ID предметов, которые экиперованы на персонаже
@@ -784,11 +781,23 @@ func ExistItemID(inventory Inventory, id int) (*MyItem, bool) {
 }
 
 // Сохранение инвентаря в базе данных
-func (i Inventory) Save() {
+func (i Inventory) Save(charId int) {
 	dbConn, err := db.GetConn()
 	if err != nil {
 		logger.Error.Panicln(err)
 	}
 	defer dbConn.Release()
-
+	countItems := len(i.Items)
+	if countItems == 0 {
+		return
+	}
+	dbConn.Exec(context.Background(), `DELETE FROM "items" WHERE "owner_id" = $1`, charId)
+	sql := `INSERT INTO "items" ("owner_id", "object_id", "item", "count", "enchant_level", "loc", "loc_data", "time_of_use", "custom_type1", "custom_type2",  "time", "agathion_energy") VALUES `
+	for index, item := range i.Items {
+		sql += fmt.Sprintf("(%d, %d, %d, %d, %d, '%s', %d, %d, %d, %d, '-1', %d)", charId, item.ObjId, item.Id, item.Count, item.Enchant, item.Loc, item.LocData, item.Time, item.ConsumeType, item.ConsumeType, item.Mana)
+		if countItems != index+1 {
+			sql += ","
+		}
+	}
+	dbConn.Exec(context.Background(), sql)
 }
