@@ -185,9 +185,10 @@ func (c *Character) SetSkillToQueue(skill Skill, ctrlPressed, shiftPressed bool)
 // IsActiveWeapon есть ли у персонажа оружие в руках
 func (c *Character) IsActiveWeapon() bool {
 	x := c.Paperdoll[PAPERDOLL_RHAND]
-	//todo Еще есть кастеты
-	return x.ObjId != 0
-	//todo ?
+	if x.ObjId != 0 {
+		return true
+	}
+	return false
 }
 
 // GetPercentFromCurrentLevel получить % опыта на текущем уровне
@@ -228,7 +229,7 @@ func (c *Character) Load() {
 	c.LoadSkills()
 	c.SkillQueue = make(chan SkillHolder)
 	c.Inventory = GetMyItems(c.ObjectId)
-	c.Paperdoll = RestoreVisibleInventory(c.ObjectId)
+	c.Paperdoll = c.Inventory.RestoreVisibleInventory()
 	c.LoadCharactersMacros()
 
 	for _, v := range &c.Paperdoll {

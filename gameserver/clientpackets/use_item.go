@@ -1,6 +1,7 @@
 package clientpackets
 
 import (
+	"l2gogameserver/data/logger"
 	"l2gogameserver/gameserver/interfaces"
 	"l2gogameserver/gameserver/models"
 	"l2gogameserver/gameserver/models/items"
@@ -103,22 +104,25 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 
 		}
 
-		andItem, ok := models.UseEquippableItem(selectedItem, client.CurrentChar)
-		if ok {
-			pkg := serverpackets.InventoryUpdate(andItem, models.UpdateTypeModify)
-			buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
-		}
-
 	}
 
-	models.SaveInventoryInDB(client.CurrentChar.Inventory.Items)
+	oldItem, isOldItem := models.UseEquippableItem(selectedItem, client.CurrentChar)
 
+	if isOldItem {
+		logger.Warning.Println("Снимаем старый предмет:", oldItem.Name)
+		pkg := serverpackets.InventoryUpdate(oldItem, models.UpdateTypeModify)
+		buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
+	}
+
+	logger.Warning.Println("Надеваем новый предмет:", selectedItem.Name, selectedItem.Loc)
 	pkg := serverpackets.InventoryUpdate(selectedItem, models.UpdateTypeModify)
 	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
 
+	models.SaveInventoryInDB(client.CurrentChar.Inventory.Items)
+
 	// После каждого use_item будет запрос в бд на восстановление paperdoll,
 	//todo надо бы это сделать в UseEquippableItem
-	client.CurrentChar.Paperdoll = models.RestoreVisibleInventory(client.CurrentChar.ObjectId)
+	client.CurrentChar.Paperdoll = client.CurrentChar.Inventory.RestoreVisibleInventory()
 
 	pkg2 := serverpackets.UserInfo(client.GetCurrentChar())
 	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg2))

@@ -73,7 +73,7 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 	}
 
 	for _, v := range client.Account.Char {
-		v.Paperdoll = models.RestoreVisibleInventory(v.ObjectId)
+		v.Paperdoll = v.Inventory.RestoreVisibleInventory()
 	}
 
 	buffer.WriteSingleByte(0x09)
@@ -127,7 +127,7 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		buffer.WriteD(0)
 		buffer.WriteD(0)
 
-		paperdoll := models.RestoreVisibleInventory(char.ObjectId)
+		paperdoll := char.Inventory.RestoreVisibleInventory()
 		for _, slot := range models.GetPaperdollOrder() {
 			buffer.WriteD(int32(paperdoll[slot].Id))
 		}

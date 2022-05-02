@@ -59,9 +59,9 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 	buffer.WriteD(109020) //maxLoad
 
 	if character.IsActiveWeapon() {
-		buffer.WriteD(20) //no weapon
-	} else {
 		buffer.WriteD(40) //equiped weapon
+	} else {
+		buffer.WriteD(20) //no weapon
 	}
 
 	for _, slot := range models.GetPaperdollOrder() {

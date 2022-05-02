@@ -24,7 +24,9 @@ func Handler(client interfaces.ReciverAndSender) {
 			return
 			//break // todo  return ?
 		}
-		logger.Info.Println("Client->Server: #", opcode, packets.GetNamePacket(opcode))
+		if packets.GetNamePacket(opcode) == "ValidatePosition" && packets.GetNamePacket(opcode) == "MoveBackwardToLocation" {
+			logger.Info.Println("Client->Server: #", opcode, packets.GetNamePacket(opcode))
+		}
 		switch opcode {
 		case 0:
 			clientpackets.Logout(client, data)
