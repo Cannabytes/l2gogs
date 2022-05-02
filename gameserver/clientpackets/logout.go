@@ -24,4 +24,6 @@ func Logout(clientI interfaces.ReciverAndSender, data []byte) {
 	pkg := serverpackets.LogoutToClient(data, clientI)
 	clientI.EncryptAndSend(pkg)
 	gameserver.CharOffline(clientI)
+
+	client.Socket.Close()
 }

@@ -13,14 +13,18 @@ func IsAdmin() {
 
 }
 
-func Command(client interfaces.ReciverAndSender, commandArr []string) {
+func Command(clientInterface interfaces.ReciverAndSender, commandArr []string) {
 	log.Println(commandArr)
 	command := commandArr[0]
 	//summon - вызвать предмет
-	if command == "summon" {
+	switch command {
+	case "summon":
 		itemid, count := data.StrToInt(commandArr[1]), data.StrToInt64(commandArr[2])
-		itemSummon(client, itemid, count)
+		itemSummon(clientInterface, itemid, count)
+	case "teleport":
+		teleport(clientInterface, data.StrToInt(commandArr[1]), data.StrToInt(commandArr[2]))
 	}
+
 }
 
 //Когда админ в ALT+G призывает предмет
@@ -32,8 +36,12 @@ func itemSummon(clientInterface interfaces.ReciverAndSender, itemid int, count i
 		return
 	}
 	item, updateType := client.CurrentChar.Inventory.AddItem(item)
-	//for _, myItem := range client.CurrentChar.Inventory.Items {
-	//	log.Println(item.Name, myItem.ObjId)
-	//}
 	client.EncryptAndSend(serverpackets.InventoryUpdate(item, updateType))
+}
+
+//Телепортация админа
+//Ему достаточно зажать CTRL+ALT+SHIFT и кликнуть по карте
+func teleport(clientInterface interfaces.ReciverAndSender, x, y int) {
+	z, h := 0, 0
+	clientInterface.EncryptAndSend(serverpackets.TeleportToLocation(clientInterface, x, y, z, h))
 }

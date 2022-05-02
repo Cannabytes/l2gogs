@@ -103,7 +103,11 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 
 		}
 
-		models.UseEquippableItem(selectedItem, client.CurrentChar)
+		andItem, ok := models.UseEquippableItem(selectedItem, client.CurrentChar)
+		if ok {
+			pkg := serverpackets.InventoryUpdate(andItem, models.UpdateTypeModify)
+			buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
+		}
 
 	}
 

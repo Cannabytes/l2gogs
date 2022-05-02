@@ -149,7 +149,8 @@ func maxSkillLevel(SkillList []TreesSkills, skillid int) TreesSkills {
 }
 
 // GetLevelSkills Возвращает все скиллы персонажа, который соответствует уровню и классу
-// Необходимо эту функцию юзать при повышении уровня, и при загрузке персонажа в игру
+// Необходимо эту функцию юзать при повышении уровня
+// Есть смысл сохранять это в БД только в случае если на сервере НЕ АВТОИЗУЧЕНИЕ скилов.
 func GetLevelSkills(clientI interfaces.ReciverAndSender) {
 	client, ok := clientI.(*Client)
 	if !ok {
