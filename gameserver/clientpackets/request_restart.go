@@ -17,6 +17,7 @@ func RequestRestart(data []byte, clientI interfaces.ReciverAndSender) {
 
 	buff.SaveBuff(client)
 	client.SaveUser()
+	client.CurrentChar.Inventory.Save(int(clientI.GetCurrentChar().GetObjectId()))
 
 	//todo need save in db
 

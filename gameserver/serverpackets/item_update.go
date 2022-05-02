@@ -15,7 +15,7 @@ func ItemUpdate(clientI interfaces.ReciverAndSender, updateType int16, objId int
 	defer packets.Put(buffer)
 
 	items := client.CurrentChar.Inventory.Items
-	var item models.MyItem
+	var item *models.MyItem
 
 	for _, v := range items {
 		if v.ObjId == objId {

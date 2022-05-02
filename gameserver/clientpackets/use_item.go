@@ -28,7 +28,7 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 
 	find := false
 	for i := range client.CurrentChar.Inventory.Items {
-		item := &client.CurrentChar.Inventory.Items[i]
+		item := client.CurrentChar.Inventory.Items[i]
 		if item.ObjId == objId {
 			selectedItem = item
 			find = true
@@ -103,13 +103,17 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 
 		}
 
-		models.UseEquippableItem(selectedItem, client.CurrentChar)
+		andItem, ok := models.UseEquippableItem(selectedItem, client.CurrentChar)
+		if ok {
+			pkg := serverpackets.InventoryUpdate(andItem, models.UpdateTypeModify)
+			buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
+		}
 
 	}
 
 	models.SaveInventoryInDB(client.CurrentChar.Inventory.Items)
 
-	pkg := serverpackets.InventoryUpdate(*selectedItem, models.UpdateTypeModify)
+	pkg := serverpackets.InventoryUpdate(selectedItem, models.UpdateTypeModify)
 	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
 
 	// После каждого use_item будет запрос в бд на восстановление paperdoll,

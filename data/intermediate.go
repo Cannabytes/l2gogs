@@ -14,6 +14,14 @@ func StrToInt(value string) int {
 	return nvalue
 }
 
+func StrToInt64(value string) int64 {
+	nvalue, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		logger.Info.Panicln(err)
+	}
+	return nvalue
+}
+
 // CalcInt Общее количество всех чисел разом
 func CalcInt(args ...int) int {
 	total := 0

@@ -4,18 +4,26 @@ import (
 	"l2gogameserver/gameserver"
 	"l2gogameserver/gameserver/buff"
 	"l2gogameserver/gameserver/interfaces"
+	"l2gogameserver/gameserver/models"
 	"l2gogameserver/gameserver/serverpackets"
 	"log"
 )
 
-func Logout(client interfaces.ReciverAndSender, data []byte) {
-	log.Println(client.GetCurrentChar().GetObjectId())
-	if client.GetCurrentChar().GetObjectId() == 0 {
+func Logout(clientI interfaces.ReciverAndSender, data []byte) {
+	client := clientI.(*models.Client)
+
+	log.Println(clientI.GetCurrentChar().GetObjectId())
+	if clientI.GetCurrentChar().GetObjectId() == 0 {
 		return
 	}
-	buff.SaveBuff(client)
-	client.GetCurrentChar().SetStatusOffline()
-	pkg := serverpackets.LogoutToClient(data, client)
-	client.EncryptAndSend(pkg)
-	gameserver.CharOffline(client)
+
+	buff.SaveBuff(clientI)
+	client.CurrentChar.Inventory.Save(int(clientI.GetCurrentChar().GetObjectId()))
+
+	clientI.GetCurrentChar().SetStatusOffline()
+	pkg := serverpackets.LogoutToClient(data, clientI)
+	clientI.EncryptAndSend(pkg)
+	gameserver.CharOffline(clientI)
+
+	client.Socket.Close()
 }

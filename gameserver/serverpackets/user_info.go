@@ -84,24 +84,24 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 	buffer.WriteD(34)                                                                                                                                                                      //accuracy //TODO
 	buffer.WriteD(int32(stat.BaseCritRate))                                                                                                                                                //critHit
 	buffer.WriteD(int32(stat.BaseMAtk))                                                                                                                                                    //Matack
-	buffer.WriteD(25)                                                                                                                                                                      //M atackSpped
+	buffer.WriteD(333)                                                                                                                                                                     //M atackSpped
 
 	buffer.WriteD(330) //patackSpeed again?
 
-	buffer.WriteD(47) //mdef
+	buffer.WriteD(int32(data.CalcInt(stat.BaseMDef.MDef, stat.BaseMDef.Lear, stat.BaseMDef.Neck, stat.BaseMDef.Lfinger, stat.BaseMDef.Rear, stat.BaseMDef.Rfinger))) //mdef
 
 	buffer.WriteD(character.PvpKills) //pvp
 	buffer.WriteD(character.Karma)    //karma
 
-	buffer.WriteD(999) //runSpeed
-	buffer.WriteD(80)  //walkspeed
-	buffer.WriteD(50)  //swimRunSpeed
-	buffer.WriteD(50)  //swimWalkSpeed
-	buffer.WriteD(0)   //flyRunSpeed
-	buffer.WriteD(0)   //flyWalkSpeed
-	buffer.WriteD(0)   //flyRunSpeed again
-	buffer.WriteD(0)   //flyWalkSpeed again
-	buffer.WriteF(1.1) //moveMultipler
+	buffer.WriteD(int32(stat.BaseMoveSpd.Run))      //runSpeed
+	buffer.WriteD(int32(stat.BaseMoveSpd.Walk))     //walkspeed
+	buffer.WriteD(int32(stat.BaseMoveSpd.SlowSwim)) //swimRunSpeed
+	buffer.WriteD(int32(stat.BaseMoveSpd.FastSwim)) //swimWalkSpeed
+	buffer.WriteD(25)                               //flyRunSpeed
+	buffer.WriteD(25)                               //flyWalkSpeed
+	buffer.WriteD(25)                               //flyRunSpeed again
+	buffer.WriteD(0)                                //flyWalkSpeed again
+	buffer.WriteF(1.1)                              //moveMultipler
 
 	buffer.WriteF(1.21) //atackSpeedMultiplier
 
@@ -149,8 +149,8 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 	buffer.WriteD(character.ClassId) //	classId
 	buffer.WriteD(0)                 // special effects? circles around player...
 
-	buffer.WriteD(50) //MaxCP
-	buffer.WriteD(50) //CurrentCp
+	buffer.WriteD(character.MaxCp) //MaxCP
+	buffer.WriteD(character.CurCp) //CurrentCp
 
 	buffer.WriteSingleByte(0) //mounted air
 	buffer.WriteSingleByte(0) //team Id

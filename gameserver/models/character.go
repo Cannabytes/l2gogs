@@ -25,6 +25,8 @@ type (
 		CurHp         int32
 		MaxMp         int32
 		CurMp         int32
+		MaxCp         int32
+		CurCp         int32
 		Face          int32
 		HairStyle     int32
 		HairColor     int32
@@ -253,7 +255,7 @@ func (c *Character) Load() {
 func (c *Character) Shadow() {
 	for {
 		for i := range c.Inventory.Items {
-			v := &c.Inventory.Items[i]
+			v := c.Inventory.Items[i]
 			if v.Item.Durability > 0 && v.Loc == PaperdollLoc {
 				var iup IUP
 				iup.ObjId = v.ObjId
@@ -318,25 +320,22 @@ func (c *Character) RemoveBonusStat(s []items.ItemBonusStat) {
 	c.BonusStats = news
 }
 
-//Обновление статов персонажа
+// GetRefreshStats Обновление статов персонажа
+// Берется статы из оружия, брони.
+// TODO: Скиллы и бижа не учитывается
 func (c *Character) GetRefreshStats() {
 	c.Stats = AllStats[int(c.ClassId)].StaticData
+	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level]
+	c.MaxMp = int32(LvlUpgain.Mp)
+	c.MaxHp = int32(LvlUpgain.Hp)
+	c.CurHp = int32(LvlUpgain.Cp)
+
 	for _, v := range &c.Paperdoll {
 		if v.ObjId != 0 {
 			c.AddBonusStat(v.BonusStats)
 			c.BonusStatCals(v)
 		}
 	}
-
-	//c.getWeaponEquip()
-	//c.Stats.BasePDef.PDef = int(c.GetPDefEquip())
-}
-
-func (c *Character) getWeaponEquip() {
-	//item, ok := c.Inventory.IsEquipWeapon()
-	//if !ok {
-	//	return
-	//}
 
 }
 
@@ -376,6 +375,7 @@ func (c *Character) getWeaponEquip() {
 //return int32(base)
 //}
 
+// Сложение всех статов
 func (c *Character) BonusStatCals(item MyItem) {
 	for _, v := range item.BonusStats {
 		if v.Type == "physical_damage" {
@@ -390,16 +390,17 @@ func (c *Character) BonusStatCals(item MyItem) {
 		if v.Type == "magical_defense" {
 			c.Stats.BaseMDef.MDef += int(v.Val)
 		}
-		if v.Type == "mp_bonus" {
-			c.MaxMp += int32(v.Val)
-		}
 		if v.Type == "critical" {
 			c.Stats.BaseCritRate += int(v.Val)
 		}
 		if v.Type == "attack_speed" {
 			c.Stats.BasePAtkSpd += int(v.Val)
 		}
+		if v.Type == "mp_bonus" {
+			c.MaxMp += int32(v.Val)
+		}
 	}
+
 }
 
 func (c *Character) GetInventoryLimit() int16 {
@@ -502,7 +503,7 @@ func (c *Character) SaveFirstInGamePlayer() {
 //ExistItemInInventory Возвращает ссылку на Item если он есть в инвентаре
 func (c *Character) ExistItemInInventory(objectItemId int32) *MyItem {
 	for i := range c.Inventory.Items {
-		item := &c.Inventory.Items[i]
+		item := c.Inventory.Items[i]
 		if item.ObjId == objectItemId {
 			return item
 		}
