@@ -1,42 +1,42 @@
--- auto-generated definition
-create table characters
-(
-    login       varchar(25)            not null,
-    object_id          serial                 not null
-        constraint table_name_pk
-            primary key,
-    level       smallint default 1     not null,
-    max_hp      integer  default 100   not null,
-    cur_hp      integer  default 100   not null,
-    max_mp      integer  default 100   not null,
-    cur_mp      integer  default 100   not null,
-    face        smallint               not null,
-    hair_style  smallint               not null,
-    hair_color  smallint               not null,
-    sex         smallint               not null,
-    x           integer                not null,
-    y           integer not null,
-    z           integer not null,
-    exp         bigint  default 0     not null,
-    sp          bigint  default 0     not null,
-    karma       integer  default 0     not null,
-    pvp_kills   integer  default 0     not null,
-    pk_kills    integer  default 0     not null,
-    clan_id     integer  default 0     not null,
-    race        smallint               not null,
-    class_id    integer                not null,
-    base_class  integer  default 0     not null,
-    title       varchar(16),
-    online_time integer  default 0     not null,
-    nobless     integer  default 0     not null,
-    vitality    integer  default 20000 not null,
-    char_name   varchar(16)            not null,
-    first_enter_game boolean  default false
+CREATE TABLE "characters" (
+  "login" varchar(25) COLLATE "pg_catalog"."default" NOT NULL,
+  "object_id" int4 NOT NULL,
+  "char_name" varchar(16) COLLATE "pg_catalog"."default" NOT NULL,
+  "level" int2 NOT NULL DEFAULT 1,
+  "max_hp" int4 NOT NULL DEFAULT 100,
+  "cur_hp" int4 NOT NULL DEFAULT 100,
+  "max_mp" int4 NOT NULL DEFAULT 100,
+  "cur_mp" int4 NOT NULL DEFAULT 100,
+  "face" int2 NOT NULL,
+  "hair_style" int2 NOT NULL,
+  "hair_color" int2 NOT NULL,
+  "sex" int2 NOT NULL,
+  "x" int4 NOT NULL,
+  "y" int4 NOT NULL,
+  "z" int4 NOT NULL,
+  "exp" int8 NOT NULL DEFAULT 0,
+  "sp" int8 NOT NULL DEFAULT 0,
+  "karma" int4 NOT NULL DEFAULT 0,
+  "pvp_kills" int4 NOT NULL DEFAULT 0,
+  "pk_kills" int4 NOT NULL DEFAULT 0,
+  "clan_id" int4 NOT NULL DEFAULT 0,
+  "race" int2 NOT NULL,
+  "class_id" int4 NOT NULL,
+  "base_class" int4 NOT NULL DEFAULT 0,
+  "title" varchar(16) COLLATE "pg_catalog"."default",
+  "online_time" int4 NOT NULL DEFAULT 0,
+  "nobless" int4 NOT NULL DEFAULT 0,
+  "vitality" int4 NOT NULL DEFAULT 20000
 );
 
-alter table characters
-    owner to postgres;
+-- ----------------------------
+-- Indexes structure for table characters
+-- ----------------------------
+CREATE UNIQUE INDEX "table_name_char_id_uindex_copy1" ON "public"."characters" USING btree (
+  "object_id" "pg_catalog"."int4_ops" ASC NULLS LAST
+);
 
-create unique index table_name_char_id_uindex
-    on characters (object_id);
-
+-- ----------------------------
+-- Primary Key structure for table characters
+-- ----------------------------
+ALTER TABLE "characters" ADD CONSTRAINT "characters_copy1_pkey" PRIMARY KEY ("object_id");
