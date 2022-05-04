@@ -132,6 +132,11 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 		client.CurrentChar.ItemPutOn(selectedItem, itemNeedSlot)
 		clientI.EncryptAndSend(serverpackets.InventoryUpdate(selectedItem, models.UpdateTypeModify))
 	}
+
 	client.CurrentChar.Paperdoll = client.CurrentChar.RestoreVisibleInventory()
 	clientI.EncryptAndSend(serverpackets.UserInfo(client.GetCurrentChar()))
+
+	client.CurrentChar.SkillItemListRefresh()
+	clientI.EncryptAndSend(serverpackets.SkillList(client))
+
 }

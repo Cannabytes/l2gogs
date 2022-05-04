@@ -180,6 +180,15 @@ func GetLevelSkills(clientI interfaces.ReciverAndSender) {
 
 }
 
+func GetSkillName(skillname string) (Skill, bool) {
+	for _, skill := range AllSkills {
+		if skill.SkillName == skillname {
+			return *skill, true
+		}
+	}
+	return Skill{}, false
+}
+
 // Возвращает скиллы класса
 func getSkillClassParent(classId, char_level int) ([]TreesSkills, int) {
 	var uniqueTreesSkills []Trees

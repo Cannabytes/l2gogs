@@ -92,6 +92,7 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 	buff.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg10))
 
 	models.GetLevelSkills(client)
+	client.CurrentChar.SkillItemListRefresh()
 	pkg11 := serverpackets.SkillList(client)
 	buff.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg11))
 

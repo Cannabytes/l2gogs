@@ -15,12 +15,24 @@ func SkillList(clientI interfaces.ReciverAndSender) []byte {
 	buffer := packets.Get()
 
 	skills := client.CurrentChar.Skills
-
+	skillsItem := client.CurrentChar.SkillsItem
 	buffer.WriteSingleByte(0x5F)
-	l := int32(len(skills))
+	l := int32(len(skills) + len(skillsItem))
 	buffer.WriteD(l) // skill size
 
 	for _, skill := range skills {
+		isPassive := int32(0)
+		//if skill.OperateType.IsPassive() {
+		//	isPassive = 1
+		//}
+		buffer.WriteD(isPassive)            // passiv ?
+		buffer.WriteD(int32(skill.Level))   // level
+		buffer.WriteD(int32(skill.SkillId)) // id
+		buffer.WriteSingleByte(0)           // disable?
+		buffer.WriteSingleByte(0)           // enchant ?
+	}
+
+	for _, skill := range skillsItem {
 		isPassive := int32(0)
 		//if skill.OperateType.IsPassive() {
 		//	isPassive = 1

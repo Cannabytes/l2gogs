@@ -61,6 +61,7 @@ type (
 		IsFakeDeath     bool
 		// Skills todo: проверить слайс или мапа лучше для скилов
 		Skills                  []Skill
+		SkillsItem              []Skill //Скиллы, которые дает предметы, которые экиперованы на персонаже
 		IsCastingNow            bool
 		SkillQueue              chan SkillHolder
 		CurrentSkill            *SkillHolder // todo А может быть без * попробовать?
@@ -320,6 +321,22 @@ func (c *Character) RemoveBonusStat(s []items.ItemBonusStat) {
 		}
 	}
 	c.BonusStats = news
+}
+
+func (c *Character) AddBonusSkill(s Skill) {
+	c.SkillsItem = append(c.SkillsItem, s)
+}
+
+func (c *Character) SkillItemListRefresh() {
+	c.SkillsItem = nil
+	for _, selectedItem := range c.Paperdoll {
+		itemSkill := selectedItem.ItemSkill
+		skill, ok := GetSkillName(itemSkill)
+		if ok {
+			logger.Info.Println(skill.SkillName)
+			c.AddBonusSkill(skill)
+		}
+	}
 }
 
 // GetRefreshStats Обновление статов персонажа
