@@ -229,7 +229,8 @@ func (c *Character) Load() {
 	c.LoadSkills()
 	c.SkillQueue = make(chan SkillHolder)
 	c.Inventory = GetMyItems(c.ObjectId)
-	c.Paperdoll = c.Inventory.RestoreVisibleInventory()
+	c.Paperdoll = c.LoadingVisibleInventory()
+
 	c.LoadCharactersMacros()
 
 	for _, v := range &c.Paperdoll {

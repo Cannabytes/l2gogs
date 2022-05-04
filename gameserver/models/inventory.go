@@ -84,7 +84,7 @@ func NewItemCreate(character *Character, itemid int, count int64) (*MyItem, bool
 	newItem := MyItem{
 		Item:    itemData,
 		ObjId:   idfactory.GetNext(),
-		LocData: getFirstEmptySlot(character.Inventory.Items),
+		LocData: character.GetFirstEmptySlot(),
 		Count:   count,
 		Loc:     InventoryLoc,
 	}
@@ -121,11 +121,53 @@ func (i *Inventory) AddItem(item *MyItem) (*MyItem, int16) {
 
 }
 
-//Получение всех ID предметов, которые экиперованы на персонаже
-func (i Inventory) RestoreVisibleInventory() [26]MyItem {
+//При загрузке персонажа, получаем все данные "одетые" на персонаже
+func (c Character) LoadingVisibleInventory() [26]MyItem {
+
+	dbConn, err := db.GetConn()
+	if err != nil {
+		logger.Error.Panicln(err)
+	}
+	defer dbConn.Release()
+
+	rows, err := dbConn.Query(context.Background(), "SELECT object_id, item, loc_data, enchant_level FROM items WHERE owner_id= $1 AND loc= $2", c.GetObjectId(), PaperdollLoc)
+	if err != nil {
+		logger.Error.Panicln(err)
+	}
+
 	var mts [26]MyItem
 
-	for _, item := range i.Items {
+	for rows.Next() {
+		var objId int
+		var itemId int
+		var enchantLevel int
+		var locData int
+		err = rows.Scan(&objId, &itemId, &locData, &enchantLevel)
+		if err != nil {
+			logger.Info.Println(err)
+		}
+		item, ok := items.GetItemFromStorage(itemId)
+		if !ok {
+			logger.Error.Panicln("Предмет не найден")
+		}
+		mt := MyItem{
+			Item:    item,
+			ObjId:   int32(objId),
+			Enchant: enchantLevel,
+			Count:   1,
+			Loc:     PaperdollLoc,
+		}
+		mts[int32(locData)] = mt
+	}
+	return mts
+}
+
+//Получение всех ID предметов, которые экиперованы на персонаже
+func (c Character) RestoreVisibleInventory() [26]MyItem {
+
+	var mts [26]MyItem
+
+	for _, item := range c.Inventory.Items {
 		if item.Loc == PaperdollLoc {
 			mt := MyItem{
 				Item:    item.Item,
@@ -140,47 +182,6 @@ func (i Inventory) RestoreVisibleInventory() [26]MyItem {
 
 	return mts
 
-	/*
-
-		dbConn, err := db.GetConn()
-		if err != nil {
-			logger.Error.Panicln(err)
-		}
-		defer dbConn.Release()
-
-		rows, err := dbConn.Query(context.Background(), "SELECT object_id, item, loc_data, enchant_level FROM items WHERE owner_id= $1 AND loc= $2", charId, PaperdollLoc)
-		if err != nil {
-			logger.Error.Panicln(err)
-		}
-
-		var mts [26]MyItem
-
-		for rows.Next() {
-			var objId int
-			var itemId int
-			var enchantLevel int
-			var locData int
-			err = rows.Scan(&objId, &itemId, &locData, &enchantLevel)
-			if err != nil {
-				logger.Info.Println(err)
-			}
-
-			item, ok := items.GetItemFromStorage(itemId)
-			if !ok {
-				logger.Error.Panicln("Предмет не найден")
-			}
-			mt := MyItem{
-				Item:    item,
-				ObjId:   int32(objId),
-				Enchant: enchantLevel,
-				Count:   1,
-				Loc:     PaperdollLoc,
-			}
-			mts[int32(locData)] = mt
-		}
-		return mts
-
-	*/
 }
 
 // IsEquipable Можно ли надеть предмет
@@ -242,18 +243,18 @@ func GetMyItems(charId int32) Inventory {
 			inventory.Items = append(inventory.Items, &itm)
 		}
 	}
-	RefreshLocData(inventory.Items)
+	//RefreshLocData(inventory.Items)
 	return inventory
 }
 
 // RefreshLocData Сброс LocData всех предметов
-func RefreshLocData(Items []*MyItem) []*MyItem {
-	for _, item := range Items {
-		item.LocData = -1
-		item.LocData = getFirstEmptySlot(Items)
-	}
-	return Items
-}
+//func RefreshLocData(Items []*MyItem) []*MyItem {
+//for _, item := range Items {
+//	item.LocData = -1
+//item.LocData = character.GetFirstEmptySlot()
+//}
+//return Items
+//}
 
 func getAttributeForWeapon(objId int32) (attribute.Attribute, int) {
 	dbConn, err := db.GetConn()
@@ -354,7 +355,7 @@ func GetActiveWeapon(inventory []*MyItem, paperdoll [26]MyItem) *MyItem {
 	return nil
 }
 
-// UseEquippableItem исользовать предмет который можно надеть на персонажа
+// UseEquippableItem использовать предмет который можно надеть на персонажа
 func UseEquippableItem(selectedItem *MyItem, character *Character) (*MyItem, bool) {
 	//todo надо как то обновлять paperdoll, или возвращать массив или же  вынести это в другой пакет
 	if selectedItem.IsEquipped() == 1 {
@@ -364,56 +365,151 @@ func UseEquippableItem(selectedItem *MyItem, character *Character) (*MyItem, boo
 		logger.Info.Println("Надеваем этот:", selectedItem.Name)
 		return equipItemAndRecord(selectedItem, character)
 	}
-	return nil, false
 }
 
 // unEquipAndRecord cнять предмет
 func unEquipAndRecord(selectedItem *MyItem, character *Character) (*MyItem, bool) {
 	switch selectedItem.SlotBitType {
 	case items.SlotLEar:
-		return setPaperdollItem(PAPERDOLL_LEAR, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_LEAR, selectedItem, character)
 	case items.SlotREar:
-		return setPaperdollItem(PAPERDOLL_REAR, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_REAR, selectedItem, character)
 	case items.SlotNeck:
-		return setPaperdollItem(PAPERDOLL_NECK, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_NECK, selectedItem, character)
 	case items.SlotRFinger:
-		return setPaperdollItem(PAPERDOLL_RFINGER, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_RFINGER, selectedItem, character)
 	case items.SlotLFinger:
-		return setPaperdollItem(PAPERDOLL_LFINGER, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_LFINGER, selectedItem, character)
 	case items.SlotHair:
-		return setPaperdollItem(PAPERDOLL_HAIR, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_HAIR, selectedItem, character)
 	case items.SlotHair2:
-		return setPaperdollItem(PAPERDOLL_HAIR2, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_HAIR2, selectedItem, character)
 	case items.SlotHairall: //todo Разобраться что тут на l2j
-		return setPaperdollItem(PAPERDOLL_HAIR, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_HAIR, selectedItem, character)
 	case items.SlotHead:
-		return setPaperdollItem(PAPERDOLL_HEAD, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_HEAD, selectedItem, character)
 	case items.SlotRHand, items.SlotLrHand:
-		return setPaperdollItem(PAPERDOLL_RHAND, selectedItem, character)
+		return setPaperdollItemToInventary(PAPERDOLL_RHAND, selectedItem, character)
 	case items.SlotLHand:
-		return setPaperdollItem(PAPERDOLL_LHAND, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_LHAND, selectedItem, character)
 	case items.SlotGloves:
-		return setPaperdollItem(PAPERDOLL_GLOVES, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_GLOVES, selectedItem, character)
 	case items.SlotChest, items.SlotAlldress, items.SlotFullArmor:
-		return setPaperdollItem(PAPERDOLL_CHEST, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_CHEST, selectedItem, character)
 	case items.SlotLegs:
-		return setPaperdollItem(PAPERDOLL_LEGS, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_LEGS, selectedItem, character)
 	case items.SlotBack:
-		return setPaperdollItem(PAPERDOLL_CLOAK, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_CLOAK, selectedItem, character)
 	case items.SlotFeet:
-		return setPaperdollItem(PAPERDOLL_FEET, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_FEET, selectedItem, character)
 	case items.SlotUnderwear:
-		return setPaperdollItem(PAPERDOLL_UNDER, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_UNDER, selectedItem, character)
 	case items.SlotLBracelet:
-		return setPaperdollItem(PAPERDOLL_LBRACELET, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_LBRACELET, selectedItem, character)
 	case items.SlotRBracelet:
-		return setPaperdollItem(PAPERDOLL_RBRACELET, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_RBRACELET, selectedItem, character)
 	case items.SlotDeco:
-		return setPaperdollItem(PAPERDOLL_DECO1, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_DECO1, selectedItem, character)
 	case items.SlotBelt:
-		return setPaperdollItem(PAPERDOLL_BELT, nil, character)
+		return setPaperdollItemToInventary(PAPERDOLL_BELT, selectedItem, character)
 	}
 	return nil, false
+}
+
+func (c Character) SlotItemInfo(selectedItem *MyItem) uint8 {
+	paperdoll := c.Paperdoll
+	switch selectedItem.SlotBitType {
+	case items.SlotLrHand:
+		//setPaperdollItem(PAPERDOLL_LHAND, nil, character)
+		return PAPERDOLL_RHAND
+	case items.SlotLEar, items.SlotREar, items.SlotLrEar:
+		if paperdoll[PAPERDOLL_LEAR].ObjId == 0 {
+			return PAPERDOLL_LEAR
+		} else if paperdoll[PAPERDOLL_REAR].ObjId == 0 {
+			return PAPERDOLL_REAR
+		} else {
+			return PAPERDOLL_LEAR
+		}
+	case items.SlotNeck:
+		return PAPERDOLL_NECK
+	case items.SlotRFinger, items.SlotLFinger, items.SlotLrFinger:
+		if paperdoll[PAPERDOLL_LFINGER].ObjId == 0 {
+			return PAPERDOLL_LFINGER
+		} else if paperdoll[PAPERDOLL_RFINGER].ObjId == 0 {
+			return PAPERDOLL_RFINGER
+		} else {
+			return PAPERDOLL_LFINGER
+		}
+	case items.SlotHair:
+		hair := paperdoll[PAPERDOLL_HAIR]
+		if hair.ObjId != 0 && hair.SlotBitType == items.SlotHairall {
+			return PAPERDOLL_HAIR2
+		} else {
+			return PAPERDOLL_HAIR
+		}
+		return PAPERDOLL_HAIR
+	case items.SlotHair2:
+		hair2 := paperdoll[PAPERDOLL_HAIR]
+		if hair2.ObjId != 0 && hair2.SlotBitType == items.SlotHairall {
+			return PAPERDOLL_HAIR
+		} else {
+			return PAPERDOLL_HAIR2
+		}
+		return PAPERDOLL_HAIR2
+	case items.SlotHairall:
+		return PAPERDOLL_HAIR2
+		return PAPERDOLL_HAIR
+	case items.SlotHead:
+		return PAPERDOLL_HEAD
+	case items.SlotRHand:
+		//todo снять стрелы
+		return PAPERDOLL_RHAND
+	case items.SlotLHand:
+		rh := paperdoll[PAPERDOLL_RHAND]
+		if (rh.ObjId != 0) && (rh.SlotBitType == items.SlotLrHand) && !(((rh.WeaponType == weaponType.BOW) && (selectedItem.EtcItemType == etcItemType.ARROW)) || ((rh.WeaponType == weaponType.CROSSBOW) && (selectedItem.EtcItemType == etcItemType.BOLT)) || ((rh.WeaponType == weaponType.FISHINGROD) && (selectedItem.EtcItemType == etcItemType.LURE))) {
+			return PAPERDOLL_RHAND
+		}
+		return PAPERDOLL_LHAND
+	case items.SlotGloves:
+		return PAPERDOLL_GLOVES
+	case items.SlotChest:
+		return PAPERDOLL_CHEST
+	case items.SlotLegs:
+		chest := paperdoll[PAPERDOLL_CHEST]
+		if chest.ObjId != 0 && chest.SlotBitType == items.SlotFullArmor {
+			return PAPERDOLL_CHEST
+		}
+		return PAPERDOLL_LEGS
+	case items.SlotBack:
+		return PAPERDOLL_CLOAK
+	case items.SlotFeet:
+		return PAPERDOLL_FEET
+	case items.SlotUnderwear:
+		return PAPERDOLL_UNDER
+	case items.SlotLBracelet:
+		return PAPERDOLL_LBRACELET
+	case items.SlotRBracelet:
+		return PAPERDOLL_RBRACELET
+	case items.SlotDeco:
+		return PAPERDOLL_DECO1
+	case items.SlotBelt:
+		return PAPERDOLL_BELT
+	case items.SlotFullArmor:
+		return PAPERDOLL_LEGS
+		return PAPERDOLL_CHEST
+	case items.SlotAlldress:
+		logger.Error.Panicln("Слот все адреса")
+		//return PAPERDOLL_LEGS
+		//return PAPERDOLL_LHAND
+		//return PAPERDOLL_RHAND
+		//return PAPERDOLL_HEAD
+		//return PAPERDOLL_FEET
+		//return PAPERDOLL_GLOVES
+		//return PAPERDOLL_CHEST
+	default:
+		logger.Error.Panicln("Не определен Slot для itemId: " + strconv.Itoa(selectedItem.Id))
+	}
+	return 255
 }
 
 // equipItemAndRecord одеть предмет
@@ -459,21 +555,21 @@ func equipItemAndRecord(selectedItem *MyItem, character *Character) (*MyItem, bo
 	case items.SlotHair:
 		hair := paperdoll[PAPERDOLL_HAIR]
 		if hair.ObjId != 0 && hair.SlotBitType == items.SlotHairall {
-			return setPaperdollItem(PAPERDOLL_HAIR2, nil, character)
+			return setPaperdollItem(PAPERDOLL_HAIR2, selectedItem, character)
 		} else {
-			return setPaperdollItem(PAPERDOLL_HAIR, nil, character)
+			return setPaperdollItem(PAPERDOLL_HAIR, selectedItem, character)
 		}
 		return setPaperdollItem(PAPERDOLL_HAIR, selectedItem, character)
 	case items.SlotHair2:
 		hair2 := paperdoll[PAPERDOLL_HAIR]
 		if hair2.ObjId != 0 && hair2.SlotBitType == items.SlotHairall {
-			return setPaperdollItem(PAPERDOLL_HAIR, nil, character)
+			return setPaperdollItem(PAPERDOLL_HAIR, selectedItem, character)
 		} else {
-			return setPaperdollItem(PAPERDOLL_HAIR2, nil, character)
+			return setPaperdollItem(PAPERDOLL_HAIR2, selectedItem, character)
 		}
 		return setPaperdollItem(PAPERDOLL_HAIR2, selectedItem, character)
 	case items.SlotHairall:
-		return setPaperdollItem(PAPERDOLL_HAIR2, nil, character)
+		return setPaperdollItem(PAPERDOLL_HAIR2, selectedItem, character)
 		return setPaperdollItem(PAPERDOLL_HAIR, selectedItem, character)
 	case items.SlotHead:
 		return setPaperdollItem(PAPERDOLL_HEAD, selectedItem, character)
@@ -483,17 +579,17 @@ func equipItemAndRecord(selectedItem *MyItem, character *Character) (*MyItem, bo
 	case items.SlotLHand:
 		rh := paperdoll[PAPERDOLL_RHAND]
 		if (rh.ObjId != 0) && (rh.SlotBitType == items.SlotLrHand) && !(((rh.WeaponType == weaponType.BOW) && (selectedItem.EtcItemType == etcItemType.ARROW)) || ((rh.WeaponType == weaponType.CROSSBOW) && (selectedItem.EtcItemType == etcItemType.BOLT)) || ((rh.WeaponType == weaponType.FISHINGROD) && (selectedItem.EtcItemType == etcItemType.LURE))) {
-			return setPaperdollItem(PAPERDOLL_RHAND, nil, character)
+			return setPaperdollItem(PAPERDOLL_RHAND, selectedItem, character)
 		}
 		return setPaperdollItem(PAPERDOLL_LHAND, selectedItem, character)
 	case items.SlotGloves:
-		setPaperdollItem(PAPERDOLL_GLOVES, selectedItem, character)
+		return setPaperdollItem(PAPERDOLL_GLOVES, selectedItem, character)
 	case items.SlotChest:
-		setPaperdollItem(PAPERDOLL_CHEST, selectedItem, character)
+		return setPaperdollItem(PAPERDOLL_CHEST, selectedItem, character)
 	case items.SlotLegs:
 		chest := paperdoll[PAPERDOLL_CHEST]
 		if chest.ObjId != 0 && chest.SlotBitType == items.SlotFullArmor {
-			return setPaperdollItem(PAPERDOLL_CHEST, nil, character)
+			return setPaperdollItem(PAPERDOLL_CHEST, selectedItem, character)
 		}
 		return setPaperdollItem(PAPERDOLL_LEGS, selectedItem, character)
 	case items.SlotBack:
@@ -511,15 +607,15 @@ func equipItemAndRecord(selectedItem *MyItem, character *Character) (*MyItem, bo
 	case items.SlotBelt:
 		return setPaperdollItem(PAPERDOLL_BELT, selectedItem, character)
 	case items.SlotFullArmor:
-		return setPaperdollItem(PAPERDOLL_LEGS, nil, character)
+		return setPaperdollItem(PAPERDOLL_LEGS, selectedItem, character)
 		return setPaperdollItem(PAPERDOLL_CHEST, selectedItem, character)
 	case items.SlotAlldress:
-		return setPaperdollItem(PAPERDOLL_LEGS, nil, character)
-		return setPaperdollItem(PAPERDOLL_LHAND, nil, character)
-		return setPaperdollItem(PAPERDOLL_RHAND, nil, character)
-		return setPaperdollItem(PAPERDOLL_HEAD, nil, character)
-		return setPaperdollItem(PAPERDOLL_FEET, nil, character)
-		return setPaperdollItem(PAPERDOLL_GLOVES, nil, character)
+		return setPaperdollItem(PAPERDOLL_LEGS, selectedItem, character)
+		return setPaperdollItem(PAPERDOLL_LHAND, selectedItem, character)
+		return setPaperdollItem(PAPERDOLL_RHAND, selectedItem, character)
+		return setPaperdollItem(PAPERDOLL_HEAD, selectedItem, character)
+		return setPaperdollItem(PAPERDOLL_FEET, selectedItem, character)
+		return setPaperdollItem(PAPERDOLL_GLOVES, selectedItem, character)
 		return setPaperdollItem(PAPERDOLL_CHEST, selectedItem, character)
 	default:
 		logger.Error.Panicln("Не определен Slot для itemId: " + strconv.Itoa(selectedItem.Id))
@@ -527,48 +623,56 @@ func equipItemAndRecord(selectedItem *MyItem, character *Character) (*MyItem, bo
 	return nil, false
 }
 
+//Снять предмет и поместить его в инвентарь
+func setPaperdollItemToInventary(slot uint8, selectedItem *MyItem, character *Character) (*MyItem, bool) {
+	character.ItemTakeOff(selectedItem, int32(slot))
+	character.RemoveBonusStat(selectedItem.BonusStats)
+	return selectedItem, true
+}
+
 //TODO: Всю эту функцию нужно переписать по человечески, она явно тупит и в ней нехватает обработки locdata
 func setPaperdollItem(slot uint8, selectedItem *MyItem, character *Character) (*MyItem, bool) {
 	// eсли selectedItem nil, то ищем предмет которых находиться в slot
 	// переносим его в инвентарь, убираем бонусы этого итема у персонажа
-	if selectedItem == nil {
-		for i := range character.Inventory.Items {
-			itemInInventory := character.Inventory.Items[i]
-			if itemInInventory.LocData == int32(slot) && itemInInventory.Loc == PaperdollLoc {
-				itemInInventory.LocData = getFirstEmptySlot(character.Inventory.Items)
-				itemInInventory.Loc = InventoryLoc
-				character.Inventory.Items[i] = itemInInventory
-				logger.Info.Println(itemInInventory.Loc, itemInInventory.LocData)
-				character.RemoveBonusStat(itemInInventory.BonusStats)
-				return character.Inventory.Items[i], true
-			}
-		}
-	}
+	//for i := range character.Inventory.Items {
+	//	itemInInventory := character.Inventory.Items[i]
+	//	if itemInInventory.LocData == int32(slot) && itemInInventory.Loc == PaperdollLoc {
+	//		itemInInventory.LocData = getFirstEmptySlot(character.Inventory.Items)
+	//		itemInInventory.Loc = InventoryLoc
+	//		character.Inventory.Items[i] = itemInInventory
+	//		logger.Info.Println(itemInInventory.Loc, itemInInventory.LocData)
+	//		character.RemoveBonusStat(itemInInventory.BonusStats)
+	//		return character.Inventory.Items[i], true
+	//	}
+	//}
 
 	oldItem, ok := character.GetSlotItem(slot)
-	if ok { //Если слот не свободем, снимаем то что там
-		character.ItemTakeOff(oldItem)
-		if oldItem.ObjId == selectedItem.ObjId {
-			return oldItem, false
-		}
-	}
 
 	//Надеваем на слот
 	character.ItemPutOn(selectedItem, slot)
-
 	// добавить бонусы предмета персонажу
 	character.AddBonusStat(selectedItem.BonusStats)
 
-	return oldItem, ok
-
+	logger.Info.Println(ok, oldItem.Name)
+	if ok { //Если слот не свободем, снимаем то что там
+		character.ItemTakeOff(oldItem, character.GetFirstEmptySlot())
+		logger.Info.Println("Слот НЕ свободен, нужно снять предмет который на нем и надеть новый")
+		character.RemoveBonusStat(oldItem.BonusStats)
+		logger.Info.Println(ok, oldItem.Name)
+		//Это на случай, если пользователь снимает тот шмот, который надет
+		//if oldItem.ObjId == selectedItem.ObjId {
+		return oldItem, true
+		//}
+	}
+	return selectedItem, false
 	//character.Inventory.Items[keyCurrentItem] = selectedItem
-
 }
 
 // GetSlotItem находим предмет, который стоял на нужном слоте раннее
 func (c Character) GetSlotItem(slot uint8) (*MyItem, bool) {
 	for _, myItem := range c.Inventory.Items {
-		if myItem.LocData == int32(slot) && myItem.Loc == PaperdollLoc {
+		if myItem.LocData == int32(slot) {
+			//&& myItem.Loc == PaperdollLoc
 			return myItem, true
 		}
 	}
@@ -582,16 +686,16 @@ func (c Character) ItemPutOn(selectedItem *MyItem, slot uint8) {
 }
 
 // ItemTakeOff Снять предмет
-func (c Character) ItemTakeOff(selectedItem *MyItem) {
+func (c Character) ItemTakeOff(selectedItem *MyItem, slot int32) {
 	selectedItem.Loc = InventoryLoc
-	selectedItem.LocData = getFirstEmptySlot(c.Inventory.Items)
+	selectedItem.LocData = slot
 }
 
-func getFirstEmptySlot(myItems []*MyItem) int32 {
+func (c Character) GetFirstEmptySlot() int32 {
 	limit := int32(80) // todo дефолтно 80 , но может быть больше
 	//todo:(c)logan22, может быть больше и во время игры меняться,
 	//следовательно лучше вывести в отдельную структуру с дополнительными параметры персонажа
-
+	myItems := c.Inventory.Items
 	for i := int32(0); i < limit; i++ {
 		flag := false
 		for j := range myItems {
@@ -774,7 +878,7 @@ func AddInventoryItem(character *Character, item MyItem, count int64) (*MyItem, 
 			} else { //Если предмет не стакуемый, тогда добавим новое значение
 				item.ObjId = idfactory.GetNext()
 				item.Count = count
-				item.LocData = getFirstEmptySlot(character.Inventory.Items)
+				item.LocData = character.GetFirstEmptySlot()
 				character.Inventory.Items = append(character.Inventory.Items, &item)
 				return &item, count, UpdateTypeAdd, true
 			}
@@ -782,7 +886,7 @@ func AddInventoryItem(character *Character, item MyItem, count int64) (*MyItem, 
 	}
 	item.ObjId = idfactory.GetNext()
 	item.Count = count
-	item.LocData = getFirstEmptySlot(character.Inventory.Items)
+	item.LocData = character.GetFirstEmptySlot()
 	character.Inventory.Items = append(character.Inventory.Items, &item)
 	return &item, count, UpdateTypeAdd, true
 }
@@ -842,5 +946,6 @@ func (i Inventory) Save(charId int) {
 			sql += ","
 		}
 	}
+	logger.Warning.Println(sql)
 	dbConn.Exec(context.Background(), sql)
 }

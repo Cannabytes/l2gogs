@@ -42,8 +42,14 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 		return
 	}
 
-	buffer := packets.Get()
-	defer packets.Put(buffer)
+	//Сюда попадают предметы при двойном клике, которые не являются надеваемыми, к примеру адена, свитки, ресурсы
+	if selectedItem.ItemType == items.Other || selectedItem.ItemType == items.Money || selectedItem.ItemType == items.Quest {
+
+		return
+	}
+
+	//buffer := packets.Get()
+	//defer packets.Put(buffer)
 
 	if selectedItem.IsEquipable() {
 		// нельзя надевать Formal Wear с проклятым оружием
@@ -59,8 +65,7 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 			// если в руке Combat flag
 			if client.CurrentChar.IsActiveWeapon() && models.GetActiveWeapon(client.CurrentChar.Inventory.Items, client.CurrentChar.Paperdoll).Item.Id == fortFlagId {
 				pkg := serverpackets.SystemMessage(sysmsg.CannotEquipItemDueToBadCondition, client)
-				buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
-				client.Send(buffer.Bytes())
+				client.EncryptAndSend(pkg)
 				return
 			}
 			//todo тут 2 проврки на  isMounted  и isDisarmed
@@ -77,15 +82,14 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 				case race.KAMAEL:
 					if selectedItem.IsWeaponTypeNone() {
 						pkg := serverpackets.SystemMessage(sysmsg.CannotEquipItemDueToBadCondition, client)
-						buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
-						client.Send(buffer.Bytes())
+						client.EncryptAndSend(pkg)
+
 						return
 					}
 				case race.HUMAN, race.DWARF, race.ELF, race.DARK_ELF, race.ORC:
 					if selectedItem.IsOnlyKamaelWeapon() {
 						pkg := serverpackets.SystemMessage(sysmsg.CannotEquipItemDueToBadCondition, client)
-						buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
-						client.Send(buffer.Bytes())
+						client.EncryptAndSend(pkg)
 						return
 					}
 				}
@@ -95,8 +99,7 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 		case items.SlotChest, items.SlotBack, items.SlotGloves, items.SlotFeet, items.SlotHead, items.SlotFullArmor, items.SlotLegs:
 			if client.CurrentChar.Race == race.KAMAEL && (selectedItem.IsHeavyArmor() || selectedItem.IsMagicArmor()) {
 				pkg := serverpackets.SystemMessage(sysmsg.CannotEquipItemDueToBadCondition, client)
-				buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
-				client.Send(buffer.Bytes())
+				client.EncryptAndSend(pkg)
 				return
 			}
 		case items.SlotDeco:
@@ -106,26 +109,29 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 
 	}
 
-	oldItem, isOldItem := models.UseEquippableItem(selectedItem, client.CurrentChar)
-
-	if isOldItem {
-		logger.Warning.Println("Снимаем старый предмет:", oldItem.Name)
-		pkg := serverpackets.InventoryUpdate(oldItem, models.UpdateTypeModify)
-		buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
+	//Если выбранный предмет надет - снимаем его и кладем в инвентарь
+	if selectedItem.IsEquipped() == 1 {
+		//Нужно сделать проверку, занят ли слот предмета, если занят, то снять и надеть шмотку новую
+		client.CurrentChar.ItemTakeOff(selectedItem, client.CurrentChar.GetFirstEmptySlot())
+		clientI.EncryptAndSend(serverpackets.InventoryUpdate(selectedItem, models.UpdateTypeModify))
+	} else {
+		//Если предмет не надет на персонажа, и персонаж кликнул по нему
+		//Сначала проверим, свободный ли слот, туда куда наденется шмот
+		itemNeedSlot := client.CurrentChar.SlotItemInfo(selectedItem)
+		if itemNeedSlot == 255 {
+			logger.Error.Panicln("Ошибка, не найден слот предмета")
+		}
+		//Поиск занятого слота
+		busySlotItem, ok := client.CurrentChar.GetSlotItem(itemNeedSlot)
+		if ok { //Опусташаем слот перед надеванием
+			client.CurrentChar.ItemTakeOff(busySlotItem, selectedItem.LocData)
+			clientI.EncryptAndSend(serverpackets.InventoryUpdate(busySlotItem, models.UpdateTypeModify))
+		}
+		//Надеваем шмот в пустой слот
+		logger.Info.Println("Пользователь надевает предмет на слот", itemNeedSlot, selectedItem.Name, selectedItem.Id)
+		client.CurrentChar.ItemPutOn(selectedItem, itemNeedSlot)
+		clientI.EncryptAndSend(serverpackets.InventoryUpdate(selectedItem, models.UpdateTypeModify))
 	}
-
-	logger.Warning.Println("Надеваем новый предмет:", selectedItem.Name, selectedItem.Loc)
-	pkg := serverpackets.InventoryUpdate(selectedItem, models.UpdateTypeModify)
-	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
-
-	models.SaveInventoryInDB(client.CurrentChar.Inventory.Items)
-
-	// После каждого use_item будет запрос в бд на восстановление paperdoll,
-	//todo надо бы это сделать в UseEquippableItem
-	client.CurrentChar.Paperdoll = client.CurrentChar.Inventory.RestoreVisibleInventory()
-
-	pkg2 := serverpackets.UserInfo(client.GetCurrentChar())
-	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg2))
-
-	client.Send(buffer.Bytes())
+	client.CurrentChar.Paperdoll = client.CurrentChar.RestoreVisibleInventory()
+	clientI.EncryptAndSend(serverpackets.UserInfo(client.GetCurrentChar()))
 }

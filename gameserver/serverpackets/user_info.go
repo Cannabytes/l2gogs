@@ -71,7 +71,7 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 		buffer.WriteD(int32(character.Paperdoll[slot].Id)) //itemId
 	}
 	for _, slot := range models.GetPaperdollOrder() {
-		buffer.WriteD(int32(character.Paperdoll[slot].Enchant)) //enchant
+		buffer.WriteD(int32(character.Paperdoll[slot].Enchant)) //enchant (страненько, на других сборках тут аргументация передается)
 	}
 
 	buffer.WriteD(0) //talisman slot

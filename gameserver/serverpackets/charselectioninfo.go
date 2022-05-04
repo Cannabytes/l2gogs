@@ -72,9 +72,9 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		client.Account.Char = append(client.Account.Char, character)
 	}
 
-	for _, v := range client.Account.Char {
-		v.Paperdoll = v.Inventory.RestoreVisibleInventory()
-	}
+	//for _, v := range client.Account.Char {
+	//	v.Paperdoll = v.LoadingVisibleInventory()
+	//}
 
 	buffer.WriteSingleByte(0x09)
 	buffer.WriteD(int32(len(client.Account.Char))) //size char in account
@@ -127,7 +127,8 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		buffer.WriteD(0)
 		buffer.WriteD(0)
 
-		paperdoll := char.Inventory.RestoreVisibleInventory()
+		paperdoll := char.LoadingVisibleInventory()
+
 		for _, slot := range models.GetPaperdollOrder() {
 			buffer.WriteD(int32(paperdoll[slot].Id))
 		}
