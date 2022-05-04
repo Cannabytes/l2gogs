@@ -112,7 +112,11 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 	buffer.WriteD(character.HairColor) //hairColor
 	buffer.WriteD(character.Face)      //face
 
-	buffer.WriteD(1) //IsGM?
+	if character.IsAdmin {
+		buffer.WriteD(1) //IsGM?
+	} else {
+		buffer.WriteD(0) //IsPlayer
+	}
 
 	buffer.WriteS(character.Title) //title
 
@@ -165,15 +169,22 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 	buffer.WriteD(0)
 	buffer.WriteD(0)
 
-	buffer.WriteD(16777215)
+	if character.IsAdmin {
+		buffer.WriteD(0x1a9112) //color name
+	} else {
+		buffer.WriteD(16777215)
+	}
 
 	buffer.WriteSingleByte(1) //// changes the Speed display on Status Window
 
 	buffer.WriteD(0) // changes the text above CP on Status Window
 	buffer.WriteD(0) // plegue type
 
-	title := (255 & 0xFF) + ((168 & 0xFF) << 8) + ((00 & 0xFF) << 16)
-	buffer.WriteD(int32(title)) //titleColor
+	if character.IsAdmin {
+		buffer.WriteD(0x6e071b) //titleColor
+	} else {
+		buffer.WriteD(16777215)
+	}
 
 	buffer.WriteD(0) // CursedWEAPON
 

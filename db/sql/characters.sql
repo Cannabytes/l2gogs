@@ -26,13 +26,17 @@ CREATE TABLE "characters" (
   "title" varchar(16) COLLATE "pg_catalog"."default",
   "online_time" int4 NOT NULL DEFAULT 0,
   "nobless" int4 NOT NULL DEFAULT 0,
-  "vitality" int4 NOT NULL DEFAULT 20000
-);
+  "vitality" int4 NOT NULL DEFAULT 20000,
+  "is_admin" bool DEFAULT false,
+  "color_name" varchar(16) COLLATE "pg_catalog"."default",
+  "color_title" varchar(16) COLLATE "pg_catalog"."default"
+)
+;
 
 -- ----------------------------
 -- Indexes structure for table characters
 -- ----------------------------
-CREATE UNIQUE INDEX "table_name_char_id_uindex_copy1" ON "public"."characters" USING btree (
+CREATE UNIQUE INDEX "table_name_char_id_uindex_copy1" ON "characters" USING btree (
   "object_id" "pg_catalog"."int4_ops" ASC NULLS LAST
 );
 

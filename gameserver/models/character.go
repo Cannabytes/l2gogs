@@ -18,35 +18,37 @@ import (
 
 type (
 	Character struct {
-		Login         string
-		ObjectId      int32
-		Level         int32
-		MaxHp         int32
-		CurHp         int32
-		MaxMp         int32
-		CurMp         int32
-		MaxCp         int32
-		CurCp         int32
-		Face          int32
-		HairStyle     int32
-		HairColor     int32
-		Sex           int32
-		Coordinates   *Coordinates
-		Heading       int32
-		Exp           int32
-		Sp            int32
-		Karma         int32
-		PvpKills      int32
-		PkKills       int32
-		ClanId        int32
-		Race          race.Race
-		ClassId       int32
-		BaseClass     int32
-		Title         string
-		OnlineTime    uint32
-		Nobless       int32
-		Vitality      int32
-		CharName      string
+		Login       string
+		ObjectId    int32
+		CharName    string
+		Level       int32
+		MaxHp       int32
+		CurHp       int32
+		MaxMp       int32
+		CurMp       int32
+		MaxCp       int32
+		CurCp       int32
+		Face        int32
+		HairStyle   int32
+		HairColor   int32
+		Sex         int32
+		Coordinates *Coordinates
+		Heading     int32
+		Exp         int32
+		Sp          int32
+		Karma       int32
+		PvpKills    int32
+		PkKills     int32
+		ClanId      int32
+		Race        race.Race
+		ClassId     int32
+		BaseClass   int32
+		Title       string
+		OnlineTime  uint32
+		Nobless     int32
+		Vitality    int32
+		IsAdmin     bool
+
 		CurrentRegion *WorldRegion
 		Conn          *Client
 		SockConn      net.Conn
