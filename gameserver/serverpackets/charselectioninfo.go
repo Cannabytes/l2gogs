@@ -36,6 +36,7 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		err = rows.Scan(
 			&character.Login,
 			&character.ObjectId,
+			&character.CharName,
 			&character.Level,
 			&character.MaxHp,
 			&character.CurHp,
@@ -61,7 +62,6 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 			&character.OnlineTime,
 			&character.Nobless,
 			&character.Vitality,
-			&character.CharName,
 		)
 		if err != nil {
 			logger.Error.Panicln(err)
