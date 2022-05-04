@@ -17,6 +17,7 @@ func Logout(clientI interfaces.ReciverAndSender, data []byte) {
 		return
 	}
 
+	client.CurrentChar.InGame = false
 	buff.SaveBuff(clientI)
 	client.CurrentChar.Inventory.Save(int(clientI.GetCurrentChar().GetObjectId()))
 

@@ -15,6 +15,7 @@ func RequestRestart(data []byte, clientI interfaces.ReciverAndSender) {
 	}
 	client.GetCurrentChar().SetStatusOffline()
 
+	client.CurrentChar.InGame = false
 	buff.SaveBuff(client)
 	client.SaveUser()
 	client.CurrentChar.Inventory.Save(int(clientI.GetCurrentChar().GetObjectId()))

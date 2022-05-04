@@ -34,13 +34,13 @@ func AddOnlineChar(character interfaces.CharacterI) {
 	if !ok {
 		logger.Error.Panicln("addOnlineCharlogger.Error.Panicln")
 	}
-	ch.IsOnline = true
+	ch.InGame = true
 	OnlineCharacters.Char[character.GetObjectId()] = ch
 }
 
 func CharOffline(client interfaces.ReciverAndSender) {
 	OnlineCharacters.Mu.Lock()
-	OnlineCharacters.Char[client.GetCurrentChar().GetObjectId()].IsOnline = false
+	OnlineCharacters.Char[client.GetCurrentChar().GetObjectId()].InGame = false
 	delete(OnlineCharacters.Char, client.GetCurrentChar().GetObjectId())
 	OnlineCharacters.Mu.Unlock()
 	client.GetCurrentChar().GetCurrentRegion().DeleteVisibleChar(client.GetCurrentChar())

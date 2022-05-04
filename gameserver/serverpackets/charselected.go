@@ -48,8 +48,8 @@ func CharSelected(user *models.Character, clientI interfaces.ReciverAndSender) [
 	buffer.WriteD(30) //dex 121
 	buffer.WriteD(11) //wit 125
 
-	buffer.WriteD(user.OnlineTime) //inGameTime 129
-	buffer.WriteD(0)               // ?? 133
+	buffer.WriteD(int32(user.OnlineTime)) //inGameTime 129
+	buffer.WriteD(0)                      // ?? 133
 
 	buffer.WriteD(user.ClassId) // 137 classId
 

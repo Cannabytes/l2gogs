@@ -127,7 +127,7 @@ func BuffTimeOut(ch *models.Character) {
 	var buffRemove = []*models.BuffUser{}
 	for {
 		isNeedComparisonBuff := false
-		if ch.IsOnline == false {
+		if ch.InGame == false {
 			return
 		}
 		if len(ch.Buff) == 0 {

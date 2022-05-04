@@ -26,10 +26,8 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 	buff.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg2))
 
 	//Если персонажа никогда не заходил в игру, выдадим ему какие-то стартовые предметы
-	if client.CurrentChar.FirstEnterGame {
-		client.CurrentChar.SaveFirstInGamePlayer()
+	if client.CurrentChar.OnlineTime == 0 {
 		logger.Info.Println("Выдача предметов новому персонажу: ", client.CurrentChar.CharName)
-
 		client.CurrentChar.Inventory = models.AddItem(models.MyItem{
 			ObjId: idfactory.GetNext(),
 			Item: items.Item{
@@ -37,7 +35,6 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 			},
 			Count: 1,
 		}, client.CurrentChar)
-
 		client.CurrentChar.Inventory = models.AddItem(models.MyItem{
 			ObjId: idfactory.GetNext(),
 			Item: items.Item{
@@ -45,7 +42,6 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 			},
 			Count: 1,
 		}, client.CurrentChar)
-
 		client.CurrentChar.Inventory = models.AddItem(models.MyItem{
 			ObjId: idfactory.GetNext(),
 			Item: items.Item{
@@ -53,7 +49,6 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 			},
 			Count: 1,
 		}, client.CurrentChar)
-
 		client.CurrentChar.Inventory = models.AddItem(models.MyItem{
 			ObjId: idfactory.GetNext(),
 			Item: items.Item{
@@ -61,7 +56,6 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 			},
 			Count: 1,
 		}, client.CurrentChar)
-
 	}
 
 	count := uint8(len(client.CurrentChar.Macros))

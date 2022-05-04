@@ -946,6 +946,5 @@ func (i Inventory) Save(charId int) {
 			sql += ","
 		}
 	}
-	logger.Warning.Println(sql)
 	dbConn.Exec(context.Background(), sql)
 }

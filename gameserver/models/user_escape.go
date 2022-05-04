@@ -8,7 +8,7 @@ import (
 
 func (c *Client) SaveUser() {
 	c.saveLocation()
-
+	c.saveOnlineTime()
 }
 
 func (c *Client) saveLocation() {
@@ -24,4 +24,18 @@ func (c *Client) saveLocation() {
 	if err != nil {
 		logger.Error.Panicln(err)
 	}
+}
+
+func (c *Client) saveOnlineTime() {
+	dbConn, err := db.GetConn()
+	if err != nil {
+		logger.Error.Panicln(err)
+	}
+	defer dbConn.Release()
+	sql := `UPDATE "characters" SET "online_time" = $1 WHERE "object_id" = $2`
+	_, err = dbConn.Exec(context.Background(), sql, c.CurrentChar.OnlineTime, c.CurrentChar.ObjectId)
+	if err != nil {
+		logger.Error.Panicln(err)
+	}
+
 }

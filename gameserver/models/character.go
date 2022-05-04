@@ -43,7 +43,7 @@ type (
 		ClassId       int32
 		BaseClass     int32
 		Title         string
-		OnlineTime    int32
+		OnlineTime    uint32
 		Nobless       int32
 		Vitality      int32
 		CharName      string
@@ -69,7 +69,7 @@ type (
 		CursedWeaponEquippedId  int
 		BonusStats              []items.ItemBonusStat
 		ChannelUpdateShadowItem chan IUP
-		InGame                  bool
+		InGame                  bool //Если игрок онлайн
 		Target                  int32
 		Macros                  []Macro
 		CharInfoTo              chan []int32
@@ -77,8 +77,6 @@ type (
 		NpcInfo                 chan []interfaces.Npcer
 		IsMoving                bool
 		Sit                     bool
-		FirstEnterGame          bool
-		IsOnline                bool          //Если игрок онлайн
 		Buff                    []*BuffUser   //Баффы на персонаже
 		BuffScheme              []*BuffScheme //Схемы баффов игрока
 		OtherProperties         CharProperties
@@ -253,6 +251,19 @@ func (c *Character) Load() {
 	go c.Shadow()
 	go c.ListenSkillQueue()
 	go c.checkRegion()
+	go c.CounterTimeInGamePlayer()
+}
+
+// CounterTimeInGamePlayer Время игрока нахождения в игре
+func (c *Character) CounterTimeInGamePlayer() {
+	for {
+		if c.InGame == false {
+			logger.Info.Println("Счетчик времени в игре остановлен")
+			return
+		}
+		c.OnlineTime++
+		time.Sleep(time.Second)
+	}
 }
 
 func (c *Character) Shadow() {
@@ -333,7 +344,6 @@ func (c *Character) SkillItemListRefresh() {
 		itemSkill := selectedItem.ItemSkill
 		skill, ok := GetSkillName(itemSkill)
 		if ok {
-			logger.Info.Println(skill.SkillName)
 			c.AddBonusSkill(skill)
 		}
 	}
@@ -503,22 +513,6 @@ func (c *Character) checkRegion() {
 
 }
 
-//SaveFirstInGamePlayer Сохранение отметки что юзер зашел в игру впервый раз с момента создания игрока
-func (c *Character) SaveFirstInGamePlayer() {
-	dbConn, err := db.GetConn()
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
-	defer dbConn.Release()
-
-	sql := `UPDATE "characters" SET "first_enter_game" = false WHERE "object_id" = $1`
-	_, err = dbConn.Exec(context.Background(), sql, c.ObjectId)
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
-	c.FirstEnterGame = false
-}
-
 //ExistItemInInventory Возвращает ссылку на Item если он есть в инвентаре
 func (c *Character) ExistItemInInventory(objectItemId int32) *MyItem {
 	for i := range c.Inventory.Items {
@@ -540,7 +534,7 @@ func (c *Character) GetBuff() []*BuffUser {
 	return c.Buff
 }
 func (c *Character) SetStatusOffline() {
-	c.IsOnline = false
+	c.InGame = false
 }
 func (c *Character) SetX(x int32) {
 	c.Coordinates.X = x

@@ -62,7 +62,6 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 			&character.Nobless,
 			&character.Vitality,
 			&character.CharName,
-			&character.FirstEnterGame,
 		)
 		if err != nil {
 			logger.Error.Panicln(err)
