@@ -48,6 +48,8 @@ type (
 		Nobless     int32
 		Vitality    int32
 		IsAdmin     bool
+		NameColor   string
+		TitleColor  string
 
 		CurrentRegion *WorldRegion
 		Conn          *Client

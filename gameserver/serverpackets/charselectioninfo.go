@@ -63,6 +63,8 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 			&character.Nobless,
 			&character.Vitality,
 			&character.IsAdmin,
+			&character.NameColor,
+			&character.TitleColor,
 		)
 		if err != nil {
 			logger.Error.Panicln(err)

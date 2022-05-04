@@ -172,7 +172,11 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 	if character.IsAdmin {
 		buffer.WriteD(0x1a9112) //color name
 	} else {
-		buffer.WriteD(16777215)
+		var namecolor int32 = 0xffffff
+		if character.NameColor != "" {
+			namecolor = data.StrToInt32(character.NameColor)
+		}
+		buffer.WriteD(namecolor)
 	}
 
 	buffer.WriteSingleByte(1) //// changes the Speed display on Status Window
@@ -183,7 +187,11 @@ func UserInfo(clientI interfaces.CharacterI) []byte {
 	if character.IsAdmin {
 		buffer.WriteD(0x6e071b) //titleColor
 	} else {
-		buffer.WriteD(16777215)
+		var titlecolor int32 = 0xffffff
+		if character.TitleColor != "" {
+			titlecolor = data.StrToInt32(character.TitleColor)
+		}
+		buffer.WriteD(titlecolor)
 	}
 
 	buffer.WriteD(0) // CursedWEAPON
