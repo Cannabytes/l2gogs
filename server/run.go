@@ -6,7 +6,9 @@ import (
 	"l2gogameserver/gameserver"
 	"l2gogameserver/gameserver/handlers"
 	"l2gogameserver/gameserver/models"
+	"l2gogameserver/gameserver/models/stats/regeneration"
 	"net"
+	"time"
 )
 
 type GameServer struct {
@@ -19,6 +21,8 @@ func New() *GameServer {
 	return &GameServer{}
 }
 
+var onlineChars models.OnlineCharacters
+
 func (g *GameServer) Start() {
 	var err error
 	/* #nosec */
@@ -26,7 +30,6 @@ func (g *GameServer) Start() {
 	if err != nil {
 		logger.Error.Panicln(err.Error())
 	}
-	var onlineChars models.OnlineCharacters
 	onlineChars.Char = make(map[int32]*models.Character)
 	gameserver.OnlineCharacters = &onlineChars
 
@@ -43,5 +46,15 @@ func (g *GameServer) Start() {
 
 		//g.AddClient(client) //todo надо ли добавлять клиентов в отдельную мапу или массив?
 		go handlers.Handler(client)
+	}
+}
+
+//События
+func Events() {
+	for {
+		for _, character := range onlineChars.Char {
+			regeneration.RenerationHpMpCp(character.Conn)
+		}
+		time.Sleep(time.Second)
 	}
 }
