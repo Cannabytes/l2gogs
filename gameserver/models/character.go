@@ -265,7 +265,7 @@ func (c *Character) Load() {
 	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level]
 	c.MaxMp = int32(LvlUpgain.Mp)
 	c.MaxHp = int32(LvlUpgain.Hp)
-	c.CurHp = int32(LvlUpgain.Cp)
+	c.MaxCp = int32(LvlUpgain.Cp)
 	c.HpRegen = LvlUpgain.HpRegen
 	c.MpRegen = LvlUpgain.MpRegen
 	c.CpRegen = LvlUpgain.CpRegen

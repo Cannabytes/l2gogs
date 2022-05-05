@@ -27,6 +27,7 @@ func Handler(client interfaces.ReciverAndSender) {
 		if packets.GetNamePacket(opcode) == "ValidatePosition" && packets.GetNamePacket(opcode) == "MoveBackwardToLocation" {
 			logger.Info.Println("Client->Server: #", opcode, packets.GetNamePacket(opcode))
 		}
+
 		switch opcode {
 		case 0:
 			clientpackets.Logout(client, data)
@@ -102,6 +103,7 @@ func Handler(client interfaces.ReciverAndSender) {
 		case 166:
 			clientpackets.RequestSkillCoolTime(client, data)
 		case 15:
+
 			pkg := clientpackets.MoveBackwardToLocation(client, data)
 			broadcast.Checkaem(client, pkg)
 
