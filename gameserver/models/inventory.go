@@ -163,7 +163,7 @@ func (c Character) LoadingVisibleInventory() [26]MyItem {
 }
 
 //Получение всех ID предметов, которые экиперованы на персонаже
-func (c Character) RestoreVisibleInventory() [26]MyItem {
+func (c *Character) RestoreVisibleInventory() [26]MyItem {
 
 	var mts [26]MyItem
 
@@ -680,18 +680,18 @@ func (c Character) GetSlotItem(slot uint8) (*MyItem, bool) {
 }
 
 // ItemPutOn Надеть вещь
-func (c Character) ItemPutOn(selectedItem *MyItem, slot uint8) {
+func (c *Character) ItemPutOn(selectedItem *MyItem, slot uint8) {
 	selectedItem.Loc = PaperdollLoc
 	selectedItem.LocData = int32(slot)
 }
 
 // ItemTakeOff Снять предмет
-func (c Character) ItemTakeOff(selectedItem *MyItem, slot int32) {
+func (c *Character) ItemTakeOff(selectedItem *MyItem, slot int32) {
 	selectedItem.Loc = InventoryLoc
 	selectedItem.LocData = slot
 }
 
-func (c Character) GetFirstEmptySlot() int32 {
+func (c *Character) GetFirstEmptySlot() int32 {
 	limit := int32(80) // todo дефолтно 80 , но может быть больше
 	//todo:(c)logan22, может быть больше и во время игры меняться,
 	//следовательно лучше вывести в отдельную структуру с дополнительными параметры персонажа

@@ -13,13 +13,14 @@ import (
 )
 
 func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
+	
 	client, ok := clientI.(*models.Client)
 	if !ok {
 		return
 	}
 	buff := packets.Get()
 
-	pkg := serverpackets.UserInfo(client.GetCurrentChar())
+	pkg := serverpackets.UserInfo(clientI.(*models.Client))
 	buff.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
 
 	pkg2 := serverpackets.ExBrExtraUserInfo(client.CurrentChar)
@@ -87,6 +88,8 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 
 	models.GetLevelSkills(client)
 	client.CurrentChar.SkillItemListRefresh()
+	logger.Info.Println(client.CurrentChar.MaxMp)
+
 	pkg11 := serverpackets.SkillList(client)
 	buff.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg11))
 

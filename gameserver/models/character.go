@@ -9,6 +9,7 @@ import (
 	"l2gogameserver/gameserver/interfaces"
 	"l2gogameserver/gameserver/models/items"
 	"l2gogameserver/gameserver/models/race"
+	"l2gogameserver/gameserver/skills"
 	"l2gogameserver/utils"
 	"net"
 
@@ -28,6 +29,9 @@ type (
 		CurMp       int32
 		MaxCp       int32
 		CurCp       int32
+		HpRegen     float64
+		MpRegen     float64
+		CpRegen     float64
 		Face        int32
 		HairStyle   int32
 		HairColor   int32
@@ -65,7 +69,8 @@ type (
 		IsFakeDeath     bool
 		// Skills todo: проверить слайс или мапа лучше для скилов
 		Skills                  []Skill
-		SkillsItem              []Skill //Скиллы, которые дает предметы, которые экиперованы на персонаже
+		SkillsItem              []Skill        //Скиллы, которые дает предметы, которые экиперованы на персонаже
+		SkillsItemBonus         SkillItemBonus //Бонус предметов, которые добавляет статы, при экипировании
 		IsCastingNow            bool
 		SkillQueue              chan SkillHolder
 		CurrentSkill            *SkillHolder // todo А может быть без * попробовать?
@@ -85,6 +90,11 @@ type (
 		BuffScheme              []*BuffScheme //Схемы баффов игрока
 		OtherProperties         CharProperties
 		Setting                 CharSetting
+	}
+	SkillItemBonus struct {
+		MaxHP int
+		MaxMP int
+		MaxCP int
 	}
 	BuffUser struct {
 		Id     int //id skill
@@ -145,6 +155,15 @@ type (
 		UpdateType int16
 	}
 )
+
+//Сбрасывает все бонусы скиллов предмета
+func (c *Character) ResetSkillItemBonus() {
+	c.SkillsItem = nil
+
+	c.SkillsItemBonus.MaxHP = 0
+	c.SkillsItemBonus.MaxMP = 0
+	c.SkillsItemBonus.MaxCP = 0
+}
 
 func GetNewCharacterModel() *Character {
 	character := new(Character)
@@ -241,8 +260,20 @@ func (c *Character) Load() {
 			c.AddBonusStat(v.BonusStats)
 		}
 	}
+
+	//HP/MP/CP/REGEN соответствующий уровню
+	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level]
+	c.MaxMp = int32(LvlUpgain.Mp)
+	c.MaxHp = int32(LvlUpgain.Hp)
+	c.CurHp = int32(LvlUpgain.Cp)
+	c.HpRegen = LvlUpgain.HpRegen
+	c.MpRegen = LvlUpgain.MpRegen
+	c.CpRegen = LvlUpgain.CpRegen
+
+	c.ResetHpMpStatLevel()
 	//Установка классовых статов
-	c.Stats = AllStats[int(c.ClassId)].StaticData //todo а для чего BaseClass ??
+	//c.Stats = AllStats[int(c.ClassId)].StaticData //todo а для чего BaseClass ??
+	c.GetRefreshStats()
 
 	reg := GetRegion(c.Coordinates.X, c.Coordinates.Y, c.Coordinates.Z)
 	c.CharInfoTo = make(chan []int32, 2)
@@ -256,6 +287,17 @@ func (c *Character) Load() {
 	go c.ListenSkillQueue()
 	go c.checkRegion()
 	go c.CounterTimeInGamePlayer()
+}
+
+// ResetHpMpStatLevel Установка значений на ХП,МП,ЦП, и реген по уровню
+func (c *Character) ResetHpMpStatLevel() {
+	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level]
+	c.MaxMp = int32(LvlUpgain.Mp)
+	c.MaxHp = int32(LvlUpgain.Hp)
+	c.CurHp = int32(LvlUpgain.Cp)
+	c.HpRegen = LvlUpgain.HpRegen
+	c.MpRegen = LvlUpgain.MpRegen
+	c.CpRegen = LvlUpgain.CpRegen
 }
 
 // CounterTimeInGamePlayer Время игрока нахождения в игре
@@ -342,14 +384,30 @@ func (c *Character) AddBonusSkill(s Skill) {
 	c.SkillsItem = append(c.SkillsItem, s)
 }
 
-func (c *Character) SkillItemListRefresh() {
-	c.SkillsItem = nil
+// Получение списка скиллов надетых предметов
+// Возвращается true если скиллы были изменены
+func (c *Character) SkillItemListRefresh() bool {
+	c.ResetSkillItemBonus()
 	for _, selectedItem := range c.Paperdoll {
-		itemSkill := selectedItem.ItemSkill
-		skill, ok := GetSkillName(itemSkill)
-		if ok {
-			c.AddBonusSkill(skill)
+		if selectedItem.ObjId != 0 {
+			itemSkill := selectedItem.ItemSkill
+			skill, ok := GetSkillName(itemSkill)
+			if ok {
+				c.AddBonusSkill(skill)
+				c.BonusStatCalsSkills(skill)
+			}
 		}
+	}
+	if c.SkillsItem != nil {
+		return true
+	}
+	return false
+}
+
+func (c *Character) BonusStatCalsSkills(skill Skill) {
+	effect := skill.Effect
+	if effect.PMaxMp != nil {
+		c.SkillsItemBonus.MaxMP = skills.CapMath(int(c.MaxMp), skill.Effect.PMaxMp.Val, effect.PMaxMp.Cap)
 	}
 }
 
@@ -357,12 +415,8 @@ func (c *Character) SkillItemListRefresh() {
 // Берется статы из оружия, брони.
 // TODO: Скиллы и бижа не учитывается
 func (c *Character) GetRefreshStats() {
-	c.Stats = AllStats[int(c.ClassId)].StaticData
-	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level]
-	c.MaxMp = int32(LvlUpgain.Mp)
-	c.MaxHp = int32(LvlUpgain.Hp)
-	c.CurHp = int32(LvlUpgain.Cp)
-
+	c.ResetBonusStatCals()
+	c.BonusStats = nil
 	for _, v := range &c.Paperdoll {
 		if v.ObjId != 0 {
 			c.AddBonusStat(v.BonusStats)
@@ -434,6 +488,10 @@ func (c *Character) BonusStatCals(item MyItem) {
 		}
 	}
 
+}
+
+func (c *Character) ResetBonusStatCals() {
+	c.Stats = AllStats[int(c.ClassId)].StaticData
 }
 
 func (c *Character) GetInventoryLimit() int16 {

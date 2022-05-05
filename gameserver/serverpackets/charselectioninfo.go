@@ -22,13 +22,10 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		logger.Error.Panicln(err)
 	}
 	defer dbConn.Release()
-	//todo допистаь sql , убрать *
-	rows, err := dbConn.Query(context.Background(), `SELECT * FROM characters WHERE Login = $1`, client.Account.Login)
+	rows, err := dbConn.Query(context.Background(), `SELECT "login", object_id, char_name, "level", cur_hp, cur_mp, face, hair_style, hair_color, sex, x, y, z, "exp", sp, karma, pvp_kills, pk_kills, clan_id, race, class_id, base_class, title, online_time, nobless, vitality, is_admin, name_color, title_color FROM characters WHERE Login = $1`, client.Account.Login)
 	if err != nil {
 		logger.Error.Panicln(err)
 	}
-
-	//
 	client.Account.Char = client.Account.Char[:0]
 	for rows.Next() {
 		var character = models.GetNewCharacterModel()
@@ -38,9 +35,9 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 			&character.ObjectId,
 			&character.CharName,
 			&character.Level,
-			&character.MaxHp,
+			//&character.MaxHp, //Диприкейтед: мы макс ХП,МП получаем исходя из уровня, скиллов.
 			&character.CurHp,
-			&character.MaxMp,
+			//&character.MaxMp, //Диприкейтед: мы макс ХП,МП получаем исходя из уровня, скиллов.
 			&character.CurMp,
 			&character.Face,
 			&character.HairStyle,
@@ -74,10 +71,6 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		client.Account.Char = append(client.Account.Char, character)
 	}
 
-	//for _, v := range client.Account.Char {
-	//	v.Paperdoll = v.LoadingVisibleInventory()
-	//}
-
 	buffer.WriteSingleByte(0x09)
 	buffer.WriteD(int32(len(client.Account.Char))) //size char in account
 
@@ -88,6 +81,7 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 	//todo блок который должен повторяться
 
 	for _, char := range client.Account.Char {
+		char.ResetHpMpStatLevel()
 
 		buffer.WriteS(char.CharName) // Pers name
 

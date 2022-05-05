@@ -1,0 +1,554 @@
+[
+  {
+    "skill_name": "s_power_strike11",
+    "skill_id": 3,
+    "level": 1,
+    "operate_type": "A1",
+    "magic_level": 3,
+    "effect": {
+      "i_p_attack": {
+        "skillid": 30,
+        "chance": 0,
+        "val": 0,
+        "val2": 0
+      }
+    },
+    "operate_cond": {
+      "equip_weapon": [
+        "sword",
+        "blunt"
+      ]
+    },
+    "is_magic": false,
+    "mp_consume2": 9,
+    "cast_range": 40,
+    "effective_range": 400,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 3,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "enemy",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "attack",
+    "multi_class": false,
+    "olympiad_use": true
+  }
+,
+  {
+    "skill_name": "s_power_strike12",
+    "skill_id": 3,
+    "level": 2,
+    "operate_type": "A1",
+    "magic_level": 4,
+    "effect": {
+      "i_p_attack": {
+        "skillid": 32,
+        "chance": 0,
+        "val": 0,
+        "val2": 0
+      }
+    },
+    "operate_cond": {
+      "equip_weapon": [
+        "sword",
+        "blunt"
+      ]
+    },
+    "is_magic": false,
+    "mp_consume2": 9,
+    "cast_range": 40,
+    "effective_range": 400,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 3,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "enemy",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "attack",
+    "multi_class": false,
+    "olympiad_use": true
+  }
+,
+  {
+    "skill_name": "s_power_strike13",
+    "skill_id": 3,
+    "level": 3,
+    "operate_type": "A1",
+    "magic_level": 5,
+    "effect": {
+      "i_p_attack": {
+        "skillid": 35,
+        "chance": 0,
+        "val": 0,
+        "val2": 0
+      }
+    },
+    "operate_cond": {
+      "equip_weapon": [
+        "sword",
+        "blunt"
+      ]
+    },
+    "is_magic": false,
+    "mp_consume2": 10,
+    "cast_range": 40,
+    "effective_range": 400,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 3,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "enemy",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "attack",
+    "multi_class": false,
+    "olympiad_use": true
+  }
+,
+  {
+    "skill_name": "s_power_strike21",
+    "skill_id": 3,
+    "level": 4,
+    "operate_type": "A1",
+    "magic_level": 8,
+    "effect": {
+      "i_p_attack": {
+        "skillid": 46,
+        "chance": 0,
+        "val": 0,
+        "val2": 0
+      }
+    },
+    "operate_cond": {
+      "equip_weapon": [
+        "sword",
+        "blunt"
+      ]
+    },
+    "is_magic": false,
+    "mp_consume2": 11,
+    "cast_range": 40,
+    "effective_range": 400,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 3,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "enemy",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "attack",
+    "multi_class": false,
+    "olympiad_use": true
+  }
+,
+  {
+    "skill_name": "s_power_strike22",
+    "skill_id": 3,
+    "level": 5,
+    "operate_type": "A1",
+    "magic_level": 9,
+    "effect": {
+      "i_p_attack": {
+        "skillid": 51,
+        "chance": 0,
+        "val": 0,
+        "val2": 0
+      }
+    },
+    "operate_cond": {
+      "equip_weapon": [
+        "sword",
+        "blunt"
+      ]
+    },
+    "is_magic": false,
+    "mp_consume2": 12,
+    "cast_range": 40,
+    "effective_range": 400,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 3,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "enemy",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "attack",
+    "multi_class": false,
+    "olympiad_use": true
+  }
+,
+  {
+    "skill_name": "s_power_strike23",
+    "skill_id": 3,
+    "level": 6,
+    "operate_type": "A1",
+    "magic_level": 10,
+    "effect": {
+      "i_p_attack": {
+        "skillid": 55,
+        "chance": 0,
+        "val": 0,
+        "val2": 0
+      }
+    },
+    "operate_cond": {
+      "equip_weapon": [
+        "sword",
+        "blunt"
+      ]
+    },
+    "is_magic": false,
+    "mp_consume2": 13,
+    "cast_range": 40,
+    "effective_range": 400,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 3,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "enemy",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "attack",
+    "multi_class": false,
+    "olympiad_use": true
+  }
+,
+  {
+    "skill_name": "s_power_strike31",
+    "skill_id": 3,
+    "level": 7,
+    "operate_type": "A1",
+    "magic_level": 13,
+    "effect": {
+      "i_p_attack": {
+        "skillid": 71,
+        "chance": 0,
+        "val": 0,
+        "val2": 0
+      }
+    },
+    "operate_cond": {
+      "equip_weapon": [
+        "sword",
+        "blunt"
+      ]
+    },
+    "is_magic": false,
+    "mp_consume2": 16,
+    "cast_range": 40,
+    "effective_range": 400,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 3,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "enemy",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "attack",
+    "multi_class": false,
+    "olympiad_use": true
+  }
+,
+  {
+    "skill_name": "s_power_strike32",
+    "skill_id": 3,
+    "level": 8,
+    "operate_type": "A1",
+    "magic_level": 14,
+    "effect": {
+      "i_p_attack": {
+        "skillid": 78,
+        "chance": 0,
+        "val": 0,
+        "val2": 0
+      }
+    },
+    "operate_cond": {
+      "equip_weapon": [
+        "sword",
+        "blunt"
+      ]
+    },
+    "is_magic": false,
+    "mp_consume2": 16,
+    "cast_range": 40,
+    "effective_range": 400,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 3,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "enemy",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "attack",
+    "multi_class": false,
+    "olympiad_use": true
+  }
+,
+  {
+    "skill_name": "s_power_strike33",
+    "skill_id": 3,
+    "level": 9,
+    "operate_type": "A1",
+    "magic_level": 15,
+    "effect": {
+      "i_p_attack": {
+        "skillid": 84,
+        "chance": 0,
+        "val": 0,
+        "val2": 0
+      }
+    },
+    "operate_cond": {
+      "equip_weapon": [
+        "sword",
+        "blunt"
+      ]
+    },
+    "is_magic": false,
+    "mp_consume2": 17,
+    "cast_range": 40,
+    "effective_range": 400,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 3,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "enemy",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "attack",
+    "multi_class": false,
+    "olympiad_use": true
+  }
+,
+  {
+    "skill_name": "s_dash1",
+    "skill_id": 4,
+    "level": 1,
+    "operate_type": "A2",
+    "magic_level": 20,
+    "effect": {
+      "p_speed": {
+        "type": [
+          "all"
+        ],
+        "val": 40,
+        "cap": "diff"
+      }
+    },
+    "is_magic": false,
+    "mp_consume2": 10,
+    "cast_range": -1,
+    "effective_range": -1,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 30,
+    "activate_rate": -1,
+    "lv_bonus_rate": 0,
+    "basic_property": "none",
+    "abnormal_time": 15,
+    "abnormal_lv": 1,
+    "abnormal_type": "speed_up_special",
+    "abnormal_instant": 0,
+    "irreplaceable_buff": 0,
+    "buff_protect_level": 0,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "self",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "none",
+    "debuff": false,
+    "multi_class": false,
+    "olympiad_use": true
+  }
+,
+  {
+    "skill_name": "s_dash2",
+    "skill_id": 4,
+    "level": 2,
+    "operate_type": "A2",
+    "magic_level": 46,
+    "effect": {
+      "p_speed": {
+        "type": [
+          "all"
+        ],
+        "val": 66,
+        "cap": "diff"
+      }
+    },
+    "is_magic": false,
+    "mp_consume2": 21,
+    "cast_range": -1,
+    "effective_range": -1,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 30,
+    "activate_rate": -1,
+    "lv_bonus_rate": 0,
+    "basic_property": "none",
+    "abnormal_time": 15,
+    "abnormal_lv": 2,
+    "abnormal_type": "speed_up_special",
+    "abnormal_instant": 0,
+    "irreplaceable_buff": 0,
+    "buff_protect_level": 0,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "self",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "none",
+    "debuff": false,
+    "multi_class": false,
+    "olympiad_use": true
+  }
+,
+  {
+    "skill_name": "s_mortal_blow11",
+    "skill_id": 16,
+    "level": 1,
+    "operate_type": "A1",
+    "magic_level": 3,
+    "effect": {
+      "i_fatal_blow": {
+        "power": 73,
+        "blowrate": 200,
+        "critrate": 0
+      }
+    },
+    "operate_cond": {
+      "equip_weapon": [
+        "dagger"
+      ]
+    },
+    "is_magic": false,
+    "mp_consume2": 8,
+    "cast_range": 40,
+    "effective_range": 400,
+    "skill_hit_time": 1,
+    "skill_cool_time": 0,
+    "skill_hit_cancel_time": 0,
+    "reuse_delay": 3,
+    "attribute": {
+      "type": "attr_none",
+      "power": 0
+    },
+    "target_type": "enemy",
+    "affect_scope": "single",
+    "affect_limit": {
+      "pvp": 0,
+      "pve": 0
+    },
+    "next_action": "attack",
+    "multi_class": false,
+    "olympiad_use": true
+  },
+  {
+    "skill_name": "s_opt_maxmp_up_a",
+    "skill_id": 3014,
+    "level": 2,
+    "operate_type": "P",
+    "magic_level": 64,
+    "effect": {
+      "p_max_mp": {
+        "type": [
+          "all"
+        ],
+        "val": 30,
+        "cap": "per"
+      },
+      "p_pvp_physical_attack_dmg_bonus": {
+        "val": 5,
+        "cap": 0
+      },
+      "p_pvp_magical_skill_dmg_bonus": {
+        "val": 5,
+        "cap": 0
+      },
+      "p_pvp_physical_skill_dmg_bonus": {
+        "val": 5,
+        "cap": 0
+      }
+    },
+    "multi_class": false
+  }
+]

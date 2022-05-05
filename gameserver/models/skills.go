@@ -15,12 +15,43 @@ type Skill struct {
 	OperateType string `json:"operate_type"`
 	MagicLevel  int    `json:"magic_level"`
 	Effect      struct {
+		PMaxMp *struct {
+			Type []string `json:"type"`
+			Val  int      `json:"val"`
+			Cap  string   `json:"cap"`
+		} `json:"p_max_mp,omitempty"`
+		PPvpPhysicalAttackDmgBonus struct {
+			Val int `json:"val"`
+			Cap int `json:"cap"`
+		} `json:"p_pvp_physical_attack_dmg_bonus,omitempty"`
+		PPvpMagicalSkillDmgBonus struct {
+			Val int `json:"val"`
+			Cap int `json:"cap"`
+		} `json:"p_pvp_magical_skill_dmg_bonus,omitempty"`
+		PPvpPhysicalSkillDmgBonus struct {
+			Val int `json:"val"`
+			Cap int `json:"cap"`
+		} `json:"p_pvp_physical_skill_dmg_bonus,omitempty"`
+		PBlockAct []interface{} `json:"p_block_act,omitempty"`
+
 		IPAttack struct {
 			Skillid int `json:"skillid"`
 			Chance  int `json:"chance"`
 			Val     int `json:"val"`
 			Val2    int `json:"val2"`
-		} `json:"i_p_attack"`
+		} `json:"i_p_attack,omitempty"`
+
+		PSpeed struct {
+			Type []string `json:"type"`
+			Val  int      `json:"val"`
+			Cap  string   `json:"cap"`
+		} `json:"p_speed,omitempty"`
+
+		IFatalBlow struct {
+			Power    int `json:"power"`
+			Blowrate int `json:"blowrate"`
+			Critrate int `json:"critrate"`
+		} `json:"i_fatal_blow"`
 	} `json:"effect"`
 	//OperateCond struct {
 	//	EquipWeapon []string `json:"equip_weapon"`
@@ -56,7 +87,8 @@ func LoadSkills() {
 	}
 	logger.Info.Println("Загрузка скиллов")
 
-	file, err := os.Open("./datapack/data/stats/skills/skills.json")
+	//file, err := os.Open("./datapack/data/stats/skills/skills.json")
+	file, err := os.Open("./datapack/data/stats/skills/skills_test.json")
 	if err != nil {
 		logger.Error.Panicln("Failed to load config file " + err.Error())
 	}

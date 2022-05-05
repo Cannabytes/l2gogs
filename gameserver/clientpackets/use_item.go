@@ -109,7 +109,7 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 
 	}
 
-	//Если выбранный предмет надет - снимаем его и кладем в инвентарь
+	//Если выбранный предмет надет и пользователь кликает по нем - снимаем его и кладем в инвентарь
 	if selectedItem.IsEquipped() == 1 {
 		//Нужно сделать проверку, занят ли слот предмета, если занят, то снять и надеть шмотку новую
 		client.CurrentChar.ItemTakeOff(selectedItem, client.CurrentChar.GetFirstEmptySlot())
@@ -128,15 +128,16 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 			clientI.EncryptAndSend(serverpackets.InventoryUpdate(busySlotItem, models.UpdateTypeModify))
 		}
 		//Надеваем шмот в пустой слот
-		logger.Info.Println("Пользователь надевает предмет на слот", itemNeedSlot, selectedItem.Name, selectedItem.Id)
 		client.CurrentChar.ItemPutOn(selectedItem, itemNeedSlot)
 		clientI.EncryptAndSend(serverpackets.InventoryUpdate(selectedItem, models.UpdateTypeModify))
 	}
-
 	client.CurrentChar.Paperdoll = client.CurrentChar.RestoreVisibleInventory()
-	clientI.EncryptAndSend(serverpackets.UserInfo(client.GetCurrentChar()))
+	client.CurrentChar.GetRefreshStats()
 
+	//Проверка скиллов предмета
 	client.CurrentChar.SkillItemListRefresh()
 	clientI.EncryptAndSend(serverpackets.SkillList(client))
+
+	clientI.EncryptAndSend(serverpackets.UserInfo(client))
 
 }

@@ -83,12 +83,12 @@ type (
 	}
 	LvlUpgainData struct {
 		Level   int
-		Hp      float32
-		Mp      float32
-		Cp      float32
-		HpRegen float32
-		MpRegen float32
-		CpRegen float32
+		Hp      float64
+		Mp      float64
+		Cp      float64
+		HpRegen float64
+		MpRegen float64
+		CpRegen float64
 	}
 	Class struct {
 		ClassId       int

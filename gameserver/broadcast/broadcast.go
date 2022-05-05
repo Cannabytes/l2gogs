@@ -28,7 +28,7 @@ func BroadCastToAroundPlayers(my interfaces.ReciverAndSender, pkg *utils.PacketB
 // BroadCastUserInfoInRadius отправляет всем персонажам в радиусе radius
 // информацию о персонаже, Самому персонажу отправляет полный UserInfo
 func BroadCastUserInfoInRadius(me interfaces.ReciverAndSender, radius int32) {
-	ui := serverpackets.UserInfo(me.GetCurrentChar())
+	ui := serverpackets.UserInfo(me.(*models.Client))
 	me.EncryptAndSend(ui)
 
 	charsIds := models.GetAroundPlayersInRadius(me.GetCurrentChar(), radius)
