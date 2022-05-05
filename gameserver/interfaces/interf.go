@@ -3,6 +3,11 @@ package interfaces
 type Identifier interface {
 	GetId() int32
 }
+type Spectator interface {
+	GetMaxHP() float64
+	GetMaxMP() float64
+	GetMaxCP() float64
+}
 type UniquerId interface {
 	GetObjectId() int32
 }
@@ -44,6 +49,7 @@ type CharacterI interface {
 	Namer
 	UniquerId
 	Other
+	Spectator
 	EncryptAndSend(data []byte)
 	CloseChannels()
 	GetClassId() int32

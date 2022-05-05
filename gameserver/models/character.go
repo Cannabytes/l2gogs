@@ -23,12 +23,12 @@ type (
 		ObjectId    int32
 		CharName    string
 		Level       int32
-		MaxHp       int32
-		CurHp       int32
-		MaxMp       int32
-		CurMp       int32
-		MaxCp       int32
-		CurCp       int32
+		MaxHp       float64
+		CurHp       float64
+		MaxMp       float64
+		CurMp       float64
+		MaxCp       float64
+		CurCp       float64
 		HpRegen     float64
 		MpRegen     float64
 		CpRegen     float64
@@ -92,9 +92,9 @@ type (
 		Setting                 CharSetting
 	}
 	SkillItemBonus struct {
-		MaxHP int
-		MaxMP int
-		MaxCP int
+		MaxHP float64
+		MaxMP float64
+		MaxCP float64
 	}
 	BuffUser struct {
 		Id     int //id skill
@@ -263,9 +263,9 @@ func (c *Character) Load() {
 
 	//HP/MP/CP/REGEN соответствующий уровню
 	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level]
-	c.MaxMp = int32(LvlUpgain.Mp)
-	c.MaxHp = int32(LvlUpgain.Hp)
-	c.MaxCp = int32(LvlUpgain.Cp)
+	c.MaxMp = LvlUpgain.Mp
+	c.MaxHp = LvlUpgain.Hp
+	c.MaxCp = LvlUpgain.Cp
 	c.HpRegen = LvlUpgain.HpRegen
 	c.MpRegen = LvlUpgain.MpRegen
 	c.CpRegen = LvlUpgain.CpRegen
@@ -292,9 +292,9 @@ func (c *Character) Load() {
 // ResetHpMpStatLevel Установка значений на ХП,МП,ЦП, и реген по уровню
 func (c *Character) ResetHpMpStatLevel() {
 	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level]
-	c.MaxMp = int32(LvlUpgain.Mp)
-	c.MaxHp = int32(LvlUpgain.Hp)
-	c.CurHp = int32(LvlUpgain.Cp)
+	c.MaxMp = (LvlUpgain.Mp)
+	c.MaxHp = (LvlUpgain.Hp)
+	c.CurHp = (LvlUpgain.Cp)
 	c.HpRegen = LvlUpgain.HpRegen
 	c.MpRegen = LvlUpgain.MpRegen
 	c.CpRegen = LvlUpgain.CpRegen
@@ -407,8 +407,9 @@ func (c *Character) SkillItemListRefresh() bool {
 func (c *Character) BonusStatCalsSkills(skill Skill) {
 	effect := skill.Effect
 	if effect.PMaxMp != nil {
-		c.SkillsItemBonus.MaxMP = skills.CapMath(int(c.MaxMp), skill.Effect.PMaxMp.Val, effect.PMaxMp.Cap)
+		c.SkillsItemBonus.MaxMP = float64(skills.CapMath(int(c.MaxMp), skill.Effect.PMaxMp.Val, effect.PMaxMp.Cap))
 	}
+
 }
 
 // GetRefreshStats Обновление статов персонажа
@@ -484,7 +485,7 @@ func (c *Character) BonusStatCals(item MyItem) {
 			c.Stats.BasePAtkSpd += int(v.Val)
 		}
 		if v.Type == "mp_bonus" {
-			c.MaxMp += int32(v.Val)
+			c.MaxMp += (v.Val)
 		}
 	}
 
@@ -592,6 +593,20 @@ func (c *Character) GetObjectId() int32 {
 func (c *Character) GetName() string {
 	return c.CharName
 }
+
+//Возвращает общее кол-во ХП (дающее и с скиллы, с предметы и баффы)
+func (c *Character) GetMaxHP() float64 {
+	return c.MaxHp + c.SkillsItemBonus.MaxHP
+}
+
+func (c *Character) GetMaxMP() float64 {
+	return c.MaxMp + c.SkillsItemBonus.MaxMP
+}
+
+func (c *Character) GetMaxCP() float64 {
+	return c.MaxCp + c.SkillsItemBonus.MaxCP
+}
+
 func (c *Character) GetBuff() []*BuffUser {
 	return c.Buff
 }

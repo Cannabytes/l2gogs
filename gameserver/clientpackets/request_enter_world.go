@@ -13,7 +13,7 @@ import (
 )
 
 func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
-	
+
 	client, ok := clientI.(*models.Client)
 	if !ok {
 		return
@@ -88,7 +88,6 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 
 	models.GetLevelSkills(client)
 	client.CurrentChar.SkillItemListRefresh()
-	logger.Info.Println(client.CurrentChar.MaxMp)
 
 	pkg11 := serverpackets.SkillList(client)
 	buff.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg11))

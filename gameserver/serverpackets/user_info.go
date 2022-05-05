@@ -8,9 +8,7 @@ import (
 
 func UserInfo(client *models.Client) []byte {
 
-	//client.CurrentChar.GetRefreshStats()
 	stat := client.CurrentChar.Stats
-	sib := client.CurrentChar.SkillsItemBonus
 
 	buffer := packets.Get()
 	defer packets.Put(buffer)
@@ -43,11 +41,11 @@ func UserInfo(client *models.Client) []byte {
 	buffer.WriteD(int32(stat.WIT)) //wit
 	buffer.WriteD(int32(stat.MEN)) //men
 
-	buffer.WriteD(client.CurrentChar.MaxHp) //Max hp //TODO
+	buffer.WriteD(int32(client.CurrentChar.GetMaxHP())) //Max hp //TODO
 
-	buffer.WriteD(client.CurrentChar.CurHp)                    //hp currnebt
-	buffer.WriteD(client.CurrentChar.MaxMp + int32(sib.MaxMP)) //max mp
-	buffer.WriteD(client.CurrentChar.CurMp)                    //mp
+	buffer.WriteD(int32(client.CurrentChar.CurHp))      //hp currnebt
+	buffer.WriteD(int32(client.CurrentChar.GetMaxMP())) //max mp
+	buffer.WriteD(int32(client.CurrentChar.CurMp))      //mp
 
 	buffer.WriteD(client.CurrentChar.Sp) //sp //TODO
 	buffer.WriteD(0)                     //currentLoad
@@ -149,8 +147,8 @@ func UserInfo(client *models.Client) []byte {
 	buffer.WriteD(client.CurrentChar.ClassId) //	classId
 	buffer.WriteD(0)                          // special effects? circles around player...
 
-	buffer.WriteD(client.CurrentChar.MaxCp) //MaxCP
-	buffer.WriteD(client.CurrentChar.CurCp) //CurrentCp
+	buffer.WriteD(int32(client.CurrentChar.GetMaxCP())) //MaxCP
+	buffer.WriteD(int32(client.CurrentChar.CurCp))      //CurrentCp
 
 	buffer.WriteSingleByte(0) //mounted air
 	buffer.WriteSingleByte(0) //team Id

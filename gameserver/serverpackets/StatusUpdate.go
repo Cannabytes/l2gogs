@@ -82,22 +82,22 @@ func StatusUpdate(clientI interfaces.ReciverAndSender) []byte {
 	buffer.WriteD(6)
 
 	buffer.WriteD(CUR_HP)
-	buffer.WriteD(char.CurHp)
+	buffer.WriteD(int32(char.CurHp))
 
 	buffer.WriteD(MAX_HP)
-	buffer.WriteD(char.MaxHp)
+	buffer.WriteD(int32(clientI.GetCurrentChar().GetMaxHP()))
 
 	buffer.WriteD(CUR_MP)
-	buffer.WriteD(char.CurMp)
+	buffer.WriteD(int32(char.CurMp))
 
 	buffer.WriteD(MAX_MP)
-	buffer.WriteD(char.MaxMp)
+	buffer.WriteD(int32(clientI.GetCurrentChar().GetMaxMP()))
 
 	buffer.WriteD(CUR_CP)
-	buffer.WriteD(char.CurCp)
+	buffer.WriteD(int32(char.CurCp))
 
 	buffer.WriteD(MAX_CP)
-	buffer.WriteD(char.MaxCp)
+	buffer.WriteD(int32(clientI.GetCurrentChar().GetMaxCP()))
 
 	return buffer.Bytes()
 }
