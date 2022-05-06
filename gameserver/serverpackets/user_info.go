@@ -2,6 +2,7 @@ package serverpackets
 
 import (
 	"l2gogameserver/data"
+	"l2gogameserver/data/logger"
 	"l2gogameserver/gameserver/models"
 	"l2gogameserver/packets"
 )
@@ -87,17 +88,19 @@ func UserInfo(client *models.Client) []byte {
 	buffer.WriteD(client.CurrentChar.PvpKills) //pvp
 	buffer.WriteD(client.CurrentChar.Karma)    //karma
 
-	buffer.WriteD(int32(stat.BaseMoveSpd.Run))      //runSpeed
-	buffer.WriteD(int32(stat.BaseMoveSpd.Walk))     //walkspeed
-	buffer.WriteD(int32(stat.BaseMoveSpd.SlowSwim)) //swimRunSpeed
-	buffer.WriteD(int32(stat.BaseMoveSpd.FastSwim)) //swimWalkSpeed
-	buffer.WriteD(25)                               //flyRunSpeed
-	buffer.WriteD(25)                               //flyWalkSpeed
-	buffer.WriteD(25)                               //flyRunSpeed again
-	buffer.WriteD(0)                                //flyWalkSpeed again
-	buffer.WriteF(1.1)                              //moveMultipler
+	_modspd := client.GetCurrentChar().GetMaxRunSpeed() * (1. / stat.BaseMoveSpd.Run)
+	logger.Info.Println(_modspd)
+	buffer.WriteD(int32(client.GetCurrentChar().GetMaxRunSpeed() / _modspd)) //runSpeed
+	buffer.WriteD(int32(stat.BaseMoveSpd.Walk))                              //walkspeed
+	buffer.WriteD(int32(stat.BaseMoveSpd.SlowSwim))                          //swimRunSpeed
+	buffer.WriteD(int32(stat.BaseMoveSpd.FastSwim))                          //swimWalkSpeed
+	buffer.WriteD(25)                                                        //flyRunSpeed
+	buffer.WriteD(25)                                                        //flyWalkSpeed
+	buffer.WriteD(25)                                                        //flyRunSpeed again
+	buffer.WriteD(0)                                                         //flyWalkSpeed again
+	buffer.WriteF(_modspd)                                                   //moveMultipler
 
-	buffer.WriteF(1.21) //atackSpeedMultiplier
+	buffer.WriteF(1.23) //atackSpeedMultiplier
 
 	buffer.WriteF(8.0)  //collisionRadius
 	buffer.WriteF(23.5) //collisionHeight

@@ -7,6 +7,7 @@ type Spectator interface {
 	GetMaxHP() float64
 	GetMaxMP() float64
 	GetMaxCP() float64
+	GetMaxRunSpeed() float64
 }
 type UniquerId interface {
 	GetObjectId() int32

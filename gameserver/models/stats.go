@@ -48,7 +48,7 @@ type (
 	}
 	BaseMoveSpd struct {
 		Walk     int
-		Run      int
+		Run      float64
 		SlowSwim int
 		FastSwim int
 	}

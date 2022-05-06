@@ -95,6 +95,7 @@ type (
 		MaxHP float64
 		MaxMP float64
 		MaxCP float64
+		Speed float64 //Speed Run
 	}
 	BuffUser struct {
 		Id     int //id skill
@@ -163,6 +164,8 @@ func (c *Character) ResetSkillItemBonus() {
 	c.SkillsItemBonus.MaxHP = 0
 	c.SkillsItemBonus.MaxMP = 0
 	c.SkillsItemBonus.MaxCP = 0
+
+	c.SkillsItemBonus.Speed = 0
 }
 
 func GetNewCharacterModel() *Character {
@@ -407,7 +410,10 @@ func (c *Character) SkillItemListRefresh() bool {
 func (c *Character) BonusStatCalsSkills(skill Skill) {
 	effect := skill.Effect
 	if effect.PMaxMp != nil {
-		c.SkillsItemBonus.MaxMP = float64(skills.CapMath(int(c.MaxMp), skill.Effect.PMaxMp.Val, effect.PMaxMp.Cap))
+		c.SkillsItemBonus.MaxMP = float64(skills.CapMath(c.MaxMp, skill.Effect.PMaxMp.Val, effect.PMaxMp.Cap))
+	}
+	if effect.PSpeed != nil {
+		c.SkillsItemBonus.Speed = float64(skills.CapMath(c.Stats.BaseMoveSpd.Run, skill.Effect.PSpeed.Val, effect.PSpeed.Cap))
 	}
 
 }
@@ -605,6 +611,11 @@ func (c *Character) GetMaxMP() float64 {
 
 func (c *Character) GetMaxCP() float64 {
 	return c.MaxCp + c.SkillsItemBonus.MaxCP
+}
+
+//Возвращает скорость бега персонажа учитывая все баффы и .тд.
+func (c *Character) GetMaxRunSpeed() float64 {
+	return c.Stats.BaseMoveSpd.Run + c.SkillsItemBonus.Speed
 }
 
 func (c *Character) GetBuff() []*BuffUser {
