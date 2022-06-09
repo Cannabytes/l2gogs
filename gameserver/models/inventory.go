@@ -59,7 +59,7 @@ type MyItem struct {
 	items.Item
 	ObjId               int32
 	Enchant             int
-	LocData             int32
+	LocData             int32 // ID слота, который надет в инвентаре
 	Count               int64
 	Loc                 string
 	Time                int
@@ -162,7 +162,7 @@ func (c Character) LoadingVisibleInventory() [26]MyItem {
 	return mts
 }
 
-//Получение всех ID предметов, которые экиперованы на персонаже
+// RestoreVisibleInventory Получение всех ID предметов, которые экиперованы на персонаже
 func (c *Character) RestoreVisibleInventory() [26]MyItem {
 
 	var mts [26]MyItem
@@ -516,7 +516,6 @@ func (c Character) SlotItemInfo(selectedItem *MyItem) uint8 {
 func equipItemAndRecord(selectedItem *MyItem, character *Character) (*MyItem, bool) {
 	//todo проверка на приват Store, надо будет передавать character?
 	// еще проверка на ITEM_CONDITIONS
-
 	formal := character.Paperdoll[PAPERDOLL_CHEST]
 	// Проверка надето ли офф. одежда и предмет не является букетом(id=21163)
 	if (selectedItem.Id != 21163) && (formal.ObjId != 0) && (formal.SlotBitType == items.SlotAlldress) {

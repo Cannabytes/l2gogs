@@ -38,3 +38,12 @@ func CalcInt(args ...int) int {
 	}
 	return total
 }
+
+// CalcInt Общее количество всех чисел разом
+func CalcFloat64(args ...float64) int {
+	var total float64 = 0
+	for _, v := range args {
+		total += v
+	}
+	return int(total)
+}

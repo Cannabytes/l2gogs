@@ -59,22 +59,20 @@ type (
 		Width               int
 	}
 	BaseMDef struct {
-		Rear    int
-		Lear    int
-		Rfinger int
-		Lfinger int
-		Neck    int
-		MDef    int
+		Rear    float64
+		Lear    float64
+		Rfinger float64
+		Lfinger float64
+		Neck    float64
 	}
 	BasePDef struct {
-		Chest     int
-		Legs      int
-		Head      int
-		Feet      int
-		Gloves    int
-		Underwear int
-		Cloak     int
-		PDef      int
+		Chest     float64
+		Legs      float64
+		Head      float64
+		Feet      float64
+		Gloves    float64
+		Underwear float64
+		Cloak     float64
 	}
 	CreationPoint struct {
 		X int

@@ -8,51 +8,100 @@ import (
 	"os"
 )
 
+type Effect struct {
+	PMaxHp *struct {
+		Type []string `json:"type"`
+		Val  float64  `json:"val"`
+		Cap  string   `json:"cap"`
+	} `json:"p_max_hp,omitempty"`
+	PMaxMp *struct {
+		Type []string `json:"type"`
+		Val  float64  `json:"val"`
+		Cap  string   `json:"cap"`
+	} `json:"p_max_mp,omitempty"`
+	PPvpPhysicalAttackDmgBonus *struct {
+		Val int `json:"val"`
+		Cap int `json:"cap"`
+	} `json:"p_pvp_physical_attack_dmg_bonus,omitempty"`
+	PPvpMagicalSkillDmgBonus *struct {
+		Val int `json:"val"`
+		Cap int `json:"cap"`
+	} `json:"p_pvp_magical_skill_dmg_bonus,omitempty"`
+	PPvpPhysicalSkillDmgBonus *struct {
+		Val int `json:"val"`
+		Cap int `json:"cap"`
+	} `json:"p_pvp_physical_skill_dmg_bonus,omitempty"`
+	PBlockAct []interface{} `json:"p_block_act,omitempty"`
+
+	IPAttack *struct {
+		Skillid int `json:"skillid"`
+		Chance  int `json:"chance"`
+		Val     int `json:"val"`
+		Val2    int `json:"val2"`
+	} `json:"i_p_attack,omitempty"`
+
+	PSpeed *struct {
+		Type []string `json:"type"`
+		Val  float64  `json:"val"`
+		Cap  string   `json:"cap"`
+	} `json:"p_speed,omitempty"`
+
+	PPhysicalDefence *struct {
+		Type []string `json:"type"`
+		Val  float64  `json:"val"`
+		Cap  string   `json:"cap"`
+	} `json:"p_physical_defence,omitempty"`
+
+	PMagicalDefence *struct {
+		Type []string `json:"type"`
+		Val  float64  `json:"val"`
+		Cap  string   `json:"cap"`
+	} `json:"p_magical_defence,omitempty"`
+
+	PPhysicalAttack *struct {
+		Type []string `json:"type"`
+		Val  float64  `json:"val"`
+		Cap  string   `json:"cap"`
+	} `json:"p_physical_attack,omitempty"`
+
+	PMagicalAttack *struct {
+		Type []string `json:"type"`
+		Val  float64  `json:"val"`
+		Cap  string   `json:"cap"`
+	} `json:"p_magical_attack,omitempty"`
+
+	PCriticalRate *struct {
+		Type []string `json:"type"`
+		Val  float64  `json:"val"`
+		Cap  string   `json:"cap"`
+	} `json:"p_critical_rate,omitempty"`
+
+	PAttackSpeed *struct {
+		Type []string `json:"type"`
+		Val  float64  `json:"val"`
+		Cap  string   `json:"cap"`
+	} `json:"p_attack_speed,omitempty"`
+
+	PMagicSpeed *struct {
+		Type []string `json:"type"`
+		Val  float64  `json:"val"`
+		Cap  string   `json:"cap"`
+	} `json:"p_magic_speed,omitempty"`
+
+	IFatalBlow *struct {
+		Power    int `json:"power"`
+		Blowrate int `json:"blowrate"`
+		Critrate int `json:"critrate"`
+	} `json:"i_fatal_blow,omitempty"`
+}
+
 type Skill struct {
 	SkillName   string `json:"skill_name"`
 	SkillId     int    `json:"skill_id"`
 	Level       int    `json:"level"`
 	OperateType string `json:"operate_type"`
 	MagicLevel  int    `json:"magic_level"`
-	Effect      struct {
-		PMaxMp *struct {
-			Type []string `json:"type"`
-			Val  float64  `json:"val"`
-			Cap  string   `json:"cap"`
-		} `json:"p_max_mp,omitempty"`
-		PPvpPhysicalAttackDmgBonus *struct {
-			Val int `json:"val"`
-			Cap int `json:"cap"`
-		} `json:"p_pvp_physical_attack_dmg_bonus,omitempty"`
-		PPvpMagicalSkillDmgBonus *struct {
-			Val int `json:"val"`
-			Cap int `json:"cap"`
-		} `json:"p_pvp_magical_skill_dmg_bonus,omitempty"`
-		PPvpPhysicalSkillDmgBonus *struct {
-			Val int `json:"val"`
-			Cap int `json:"cap"`
-		} `json:"p_pvp_physical_skill_dmg_bonus,omitempty"`
-		PBlockAct []interface{} `json:"p_block_act,omitempty"`
-
-		IPAttack *struct {
-			Skillid int `json:"skillid"`
-			Chance  int `json:"chance"`
-			Val     int `json:"val"`
-			Val2    int `json:"val2"`
-		} `json:"i_p_attack,omitempty"`
-
-		PSpeed *struct {
-			Type []string `json:"type"`
-			Val  float64  `json:"val"`
-			Cap  string   `json:"cap"`
-		} `json:"p_speed,omitempty"`
-
-		IFatalBlow *struct {
-			Power    int `json:"power"`
-			Blowrate int `json:"blowrate"`
-			Critrate int `json:"critrate"`
-		} `json:"i_fatal_blow"`
-	} `json:"effect"`
+	Effect      Effect `json:"effect"`
 	//OperateCond struct {
 	//	EquipWeapon []string `json:"equip_weapon"`
 	//} `json:"operate_cond"`

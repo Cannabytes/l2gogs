@@ -108,9 +108,8 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 	buff.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg16))
 
 	//Баффы на персонаже
-	buff2.ComparisonBuff(client)
 	go buff2.BuffTimeOut(client.CurrentChar)
-	pkg17 := serverpackets.AbnormalStatusUpdate(client.CurrentChar.Buff)
+	pkg17 := serverpackets.AbnormalStatusUpdate(client.CurrentChar.Buff())
 	buff.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg17))
 
 	community.GetLoadCharacterScheme(clientI)

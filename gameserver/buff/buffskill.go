@@ -25,7 +25,7 @@ type Combo struct {
 	Comment string `json:"comment"`
 }
 
-var communityComboBuff = []Combo{}
+var communityComboBuff []Combo
 
 // LoadCommunityComboBuff Загрузка комбо баффа комьюнити
 func LoadCommunityComboBuff() {
@@ -49,36 +49,6 @@ func GetCommunityComboBuff(id int) (Combo, bool) {
 	return Combo{}, false
 }
 
-// ComparisonBuff Функция сравнения баффов
-// Убирает дубликаты скиллов, и оставляет бафф (если одинаковый лвл) который больше по времени будет действовать
-// Если время баффов одинаковое, тогда применяется бафф больше по уровню
-func ComparisonBuff(clientI interfaces.ReciverAndSender) {
-	client := clientI.(*models.Client)
-	buffList := client.CurrentChar.GetBuff()
-	var unique []*models.BuffUser
-	buffGet := func(unique []*models.BuffUser, id int) (*models.BuffUser, int, bool) {
-		for index, buff := range unique {
-			if buff.Id == id {
-				return buff, index, true
-			}
-		}
-		return nil, 0, false
-	}
-	for _, buff := range buffList {
-		duplicateBuff, index, ok := buffGet(unique, buff.Id)
-		if ok {
-			if duplicateBuff.Second < buff.Second || duplicateBuff.Second == buff.Second && duplicateBuff.Level < buff.Level {
-				unique = append(unique[:index], unique[index+1:]...)
-				unique = append(unique, buff)
-			}
-		} else {
-			unique = append(unique, buff)
-			continue
-		}
-	}
-	client.CurrentChar.Buff = unique
-}
-
 // Очищает записи баффа в БД
 func сlearBuffListDB(charId int32) {
 	dbConn, err := db.GetConn()
@@ -95,7 +65,7 @@ func сlearBuffListDB(charId int32) {
 // SaveBuff Сохранение баффа в БД, который на игроке
 func SaveBuff(clientI interfaces.ReciverAndSender) {
 	сlearBuffListDB(clientI.(*models.Client).CurrentChar.ObjectId)
-	MyBuffList := clientI.(*models.Client).CurrentChar.GetBuff()
+	MyBuffList := clientI.(*models.Client).CurrentChar.Buff()
 	buffCount := len(MyBuffList)
 	if buffCount == 0 {
 		return
@@ -123,42 +93,29 @@ func SaveBuff(clientI interfaces.ReciverAndSender) {
 	}
 }
 
+//Отсчет времени баффа
 func BuffTimeOut(ch *models.Character) {
-	var buffRemove = []*models.BuffUser{}
 	for {
 		isNeedComparisonBuff := false
 		if ch.InGame == false {
 			return
 		}
-		if len(ch.Buff) == 0 {
+		if len(ch.Buff()) == 0 {
 			time.Sleep(500 * time.Millisecond)
 			continue
 		}
-		for _, buff := range ch.Buff {
+		for _, buff := range ch.Buff() {
 			buff.Second -= 1
 			if buff.Second == 0 {
 				isNeedComparisonBuff = true
-				buffRemove = append(buffRemove, buff)
-				continue
+				ch.RemoveBuffSkill(buff.Id)
 			}
 		}
 		if isNeedComparisonBuff {
-			for _, bf := range buffRemove {
-				RemoveBuffId(ch, bf.Id)
-			}
-			ComparisonBuff(ch.Conn)
-			pkg17 := serverpackets.AbnormalStatusUpdate(ch.Buff)
-			ch.EncryptAndSend(pkg17)
+			ch.EncryptAndSend(serverpackets.AbnormalStatusUpdate(ch.Buff()))
+			ch.StatsRefresh()
+			ch.EncryptAndSend(serverpackets.UserInfo(ch.Conn))
 		}
 		time.Sleep(1 * time.Second)
-	}
-}
-
-// Удаление баффа у игрока по ID баффа
-func RemoveBuffId(ch *models.Character, Id int) {
-	for index, buff := range ch.Buff {
-		if buff.Id == Id {
-			ch.Buff = append(ch.Buff[:index], ch.Buff[index+1:]...)
-		}
 	}
 }

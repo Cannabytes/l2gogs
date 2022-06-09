@@ -48,9 +48,6 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 		return
 	}
 
-	//buffer := packets.Get()
-	//defer packets.Put(buffer)
-
 	if selectedItem.IsEquipable() {
 		// нельзя надевать Formal Wear с проклятым оружием
 		if client.CurrentChar.IsCursedWeaponEquipped() && objId == formalWearId {
@@ -121,6 +118,7 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 		if itemNeedSlot == 255 {
 			logger.Error.Panicln("Ошибка, не найден слот предмета")
 		}
+
 		//Поиск занятого слота
 		busySlotItem, ok := client.CurrentChar.GetSlotItem(itemNeedSlot)
 		if ok { //Опусташаем слот перед надеванием
@@ -132,7 +130,7 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 		clientI.EncryptAndSend(serverpackets.InventoryUpdate(selectedItem, models.UpdateTypeModify))
 	}
 	client.CurrentChar.Paperdoll = client.CurrentChar.RestoreVisibleInventory()
-	client.CurrentChar.GetRefreshStats()
+	client.CurrentChar.StatsRefresh()
 
 	//Проверка скиллов предмета
 	client.CurrentChar.SkillItemListRefresh()

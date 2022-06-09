@@ -1,1 +1,5 @@
 package skills
+
+func Speed() {
+
+}

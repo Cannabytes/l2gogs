@@ -70,7 +70,7 @@ func getSchemeUserBuff(schemeId int) []models.BuffSchemeSkill {
 // SchemeSave Сохранение баффа персонажа в бд
 func SchemeSave(clientI interfaces.ReciverAndSender, schemeName string) bool {
 	client := clientI.(*models.Client).CurrentChar
-	if len(client.Buff) == 0 {
+	if len(client.Buff()) == 0 {
 		return false
 	}
 	schemeId, ok := createRegistryScheme(client.GetObjectId(), schemeName)
@@ -78,7 +78,7 @@ func SchemeSave(clientI interfaces.ReciverAndSender, schemeName string) bool {
 		logger.Error.Panicln("Добавление новой записи схемы бафа не произошла")
 		return false
 	}
-	return createSchemeListBuff(client.Buff, schemeId)
+	return createSchemeListBuff(client.Buff(), schemeId)
 }
 
 //Регистрируем новую схему

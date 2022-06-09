@@ -41,14 +41,14 @@ import (
 
 */
 func BypassToServer(data []byte, clientI interfaces.ReciverAndSender) {
-	//client := clientI.(*models.Client).CurrentChar
+	client := clientI.(*models.Client)
 
 	var bypassRequest = packets.NewReader(data).ReadString()
 	bypassInfo := strings.Split(bypassRequest, ":")
-	for i, s := range bypassInfo {
-		logger.Info.Println("#", i, "->", s)
-	}
-	logger.Info.Println(bypassInfo)
+	//for i, s := range bypassInfo {
+	//logger.Info.Println("#", i, "->", s)
+	//}
+	//logger.Info.Println(bypassInfo)
 	if bypassInfo[0] == "_bbshome" && bypassRequest == "_bbshome" {
 		//Открытие диалога по умолчанию
 		SendOpenDialogBBS(clientI, "./datapack/html/community/index.htm")
@@ -96,6 +96,8 @@ func BypassToServer(data []byte, clientI interfaces.ReciverAndSender) {
 
 	} else if bypassInfo[0] == "_bbsbuff" {
 		buffAnalysis(clientI, bypassInfo)
+		client.CurrentChar.StatsRefresh()
+		clientI.EncryptAndSend(serverpackets.UserInfo(client))
 	}
 }
 
@@ -108,14 +110,10 @@ func buffAnalysis(clientI interfaces.ReciverAndSender, bypassInfo []string) {
 		buffLevel := bypassInfo[3]
 		buffCost := bypassInfo[4]
 		_ = buffCost
-		client.Buff = append(client.Buff, &models.BuffUser{
-			Id:     inter.StrToInt(buffId),
-			Level:  inter.StrToInt(buffLevel),
-			Second: 60,
-		})
-		buff2.ComparisonBuff(client.Conn)
-		pkg17 := serverpackets.AbnormalStatusUpdate(client.Buff)
-		client.EncryptAndSend(pkg17)
+
+		client.AddBuff(inter.StrToInt(buffId), inter.StrToInt(buffLevel), 60)
+
+		client.EncryptAndSend(serverpackets.AbnormalStatusUpdate(client.Buff()))
 
 		if len(bypassInfo) == 6 {
 			page := bypassInfo[5]
@@ -131,15 +129,9 @@ func buffAnalysis(clientI interfaces.ReciverAndSender, bypassInfo []string) {
 			return
 		}
 		for _, buff := range combobuff.Buffs {
-			client.Buff = append(client.Buff, &models.BuffUser{
-				Id:     buff.SkillID,
-				Level:  buff.Level,
-				Second: combobuff.Time,
-			})
+			client.AddBuff(buff.SkillID, buff.Level, combobuff.Time)
 		}
-		buff2.ComparisonBuff(client.Conn)
-		pkg17 := serverpackets.AbnormalStatusUpdate(client.Buff)
-		client.EncryptAndSend(pkg17)
+		client.EncryptAndSend(serverpackets.AbnormalStatusUpdate(client.Buff()))
 
 		if len(bypassInfo) == 4 {
 			page := bypassInfo[3]
@@ -149,8 +141,8 @@ func buffAnalysis(clientI interfaces.ReciverAndSender, bypassInfo []string) {
 	}
 	//Отмена всего баффа
 	if buffCommand == "cancel" {
-		client.Buff = nil
-		pkg17 := serverpackets.AbnormalStatusUpdate(client.Buff)
+		client.ClearBuff()
+		pkg17 := serverpackets.AbnormalStatusUpdate(client.Buff())
 		client.EncryptAndSend(pkg17)
 		if len(bypassInfo) == 3 {
 			page := bypassInfo[2]
@@ -173,20 +165,15 @@ func buffAnalysis(clientI interfaces.ReciverAndSender, bypassInfo []string) {
 		} else if action == "get" {
 			//Наложение баффа из профиля
 			id := inter.StrToInt(bypassInfo[3])
-			client.Buff = nil
+			client.ClearBuff()
 			for _, scheme := range client.BuffScheme {
 				if scheme.Id == id {
 					for _, buff := range scheme.Buffs {
-						client.Buff = append(client.Buff, &models.BuffUser{
-							Id:     buff.SkillId,
-							Level:  buff.SkillLevel,
-							Second: 60,
-						})
+						client.AddBuff(buff.SkillId, buff.SkillLevel, 60)
 					}
 				}
 			}
-			buff2.ComparisonBuff(client.Conn)
-			pkg17 := serverpackets.AbnormalStatusUpdate(client.Buff)
+			pkg17 := serverpackets.AbnormalStatusUpdate(client.Buff())
 			client.EncryptAndSend(pkg17)
 			if len(bypassInfo) == 5 {
 				page := bypassInfo[4]
@@ -201,7 +188,7 @@ func buffAnalysis(clientI interfaces.ReciverAndSender, bypassInfo []string) {
 
 //SendOpenDialogBBS Открытие диалога и отправка клиенту диалога
 func SendOpenDialogBBS(client interfaces.ReciverAndSender, filename string) {
-	logger.Info.Println(filename)
+	//logger.Info.Println(filename)
 	htmlDialog, err := htm.Open(filename)
 	if err != nil {
 		logger.Info.Println(err)
