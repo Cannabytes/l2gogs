@@ -17,7 +17,7 @@ func ShortCutInit(clientI interfaces.ReciverAndSender) []byte {
 
 	buffer.WriteSingleByte(0x45)
 
-	shortCuts := models.GetAllShortCuts(client.CurrentChar.ObjectID(), client.CurrentChar.ClassId)
+	shortCuts := models.GetAllShortCuts(client.CurrentChar.ObjectID(), client.CurrentChar.ClassID())
 	buffer.WriteD(int32(len(shortCuts)))
 
 	for _, v := range shortCuts {

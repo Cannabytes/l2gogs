@@ -26,13 +26,13 @@ func UserInfo(client *models.Client) []byte {
 
 	buffer.WriteS(player.PlayerName()) //name //TODO
 
-	buffer.WriteD(int32(player.Race)) //race ordinal //TODO
-	buffer.WriteD(player.Sex)         //sex
-	buffer.WriteD(player.BaseClass)   //baseClass
+	buffer.WriteD(int32(player.Race))   //race ordinal //TODO
+	buffer.WriteD(player.Sex)           //sex
+	buffer.WriteD(player.BaseClassID()) //baseClass
 
-	buffer.WriteD(player.Level())                                                //level //TODO
-	buffer.WriteQ(int64(player.Exp))                                             //exp
-	buffer.WriteF(player.GetPercentFromCurrentLevel(player.Exp, player.Level())) //percent
+	buffer.WriteD(player.Level())                                                  //level //TODO
+	buffer.WriteQ(int64(player.EXP()))                                             //exp
+	buffer.WriteF(player.GetPercentFromCurrentLevel(player.EXP(), player.Level())) //percent
 
 	buffer.WriteD(int32(stat.STR)) //str
 	buffer.WriteD(int32(stat.DEX)) //dex
@@ -146,8 +146,8 @@ func UserInfo(client *models.Client) []byte {
 
 	buffer.WriteH(player.GetInventoryLimit()) //inventoryLimit
 
-	buffer.WriteD(player.ClassId) //	classId
-	buffer.WriteD(0)              // special effects? circles around player...
+	buffer.WriteD(player.ClassID()) //	classId
+	buffer.WriteD(0)                // special effects? circles around player...
 
 	buffer.WriteD(int32(player.MaxCP())) //MaxCP
 	buffer.WriteD(int32(player.CurCp))   //CurrentCp

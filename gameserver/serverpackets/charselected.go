@@ -26,7 +26,7 @@ func CharSelected(user *models.Character, clientI interfaces.ReciverAndSender) [
 	buffer.WriteD(0)                 // ? //33
 	buffer.WriteD(user.Sex)          //sex// 37
 	buffer.WriteD(int32(user.Race))  //race 41
-	buffer.WriteD(user.ClassId)      //classId 45
+	buffer.WriteD(user.ClassID())    //classId 45
 	buffer.WriteD(0x1)               // ? 49
 	buffer.WriteD(x)                 //x 53
 	buffer.WriteD(y)                 //y 57
@@ -35,11 +35,11 @@ func CharSelected(user *models.Character, clientI interfaces.ReciverAndSender) [
 	buffer.WriteF(float64(user.CurHp)) //currentHP 69
 	buffer.WriteF(float64(user.CurMp)) //currentMP 77
 
-	buffer.WriteD(user.Sp)         // SP 81
-	buffer.WriteQ(int64(user.Exp)) // EXP 89
-	buffer.WriteD(user.Level())    // level 93
-	buffer.WriteD(user.Karma)      // karma 97
-	buffer.WriteD(user.PkKills)    // pk 101
+	buffer.WriteD(user.Sp)           // SP 81
+	buffer.WriteQ(int64(user.EXP())) // EXP 89
+	buffer.WriteD(user.Level())      // level 93
+	buffer.WriteD(user.Karma)        // karma 97
+	buffer.WriteD(user.PkKills)      // pk 101
 
 	buffer.WriteD(21) //int 105
 	buffer.WriteD(40) //str 109
@@ -48,10 +48,10 @@ func CharSelected(user *models.Character, clientI interfaces.ReciverAndSender) [
 	buffer.WriteD(30) //dex 121
 	buffer.WriteD(11) //wit 125
 
-	buffer.WriteD(int32(user.OnlineTime)) //inGameTime 129
-	buffer.WriteD(0)                      // ?? 133
+	buffer.WriteD(int32(user.OnlineTime())) //inGameTime 129
+	buffer.WriteD(0)                        // ?? 133
 
-	buffer.WriteD(user.ClassId) // 137 classId
+	buffer.WriteD(user.ClassID()) // 137 classId
 
 	buffer.WriteD(0) // 141
 	buffer.WriteD(0) // 145

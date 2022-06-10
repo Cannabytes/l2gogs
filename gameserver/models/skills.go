@@ -238,7 +238,7 @@ func GetLevelSkills(clientI interfaces.ReciverAndSender) {
 		panic(ok)
 	}
 
-	classId := int(client.CurrentChar.ClassId)
+	classId := int(client.CurrentChar.ClassID())
 	charLevel := int(client.CurrentChar.Level())
 
 	var all []TreesSkills

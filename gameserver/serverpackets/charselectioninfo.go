@@ -36,6 +36,10 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		playerName := ""
 		title := ""
 		level := 0
+		classID := 0
+		baseClassID := 0
+		onlineTime := 0
+		var userExp int32 = 0
 		err = rows.Scan(
 			&accountName,
 			&objectID,
@@ -52,17 +56,17 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 			&coord.X,
 			&coord.Y,
 			&coord.Z,
-			&character.Exp,
+			&userExp,
 			&character.Sp,
 			&character.Karma,
 			&character.PvpKills,
 			&character.PkKills,
 			&character.ClanId,
 			&character.Race,
-			&character.ClassId,
-			&character.BaseClass,
+			&classID,
+			&baseClassID,
 			&title,
-			&character.OnlineTime,
+			&onlineTime,
 			&character.Nobless,
 			&character.Vitality,
 			&isAdmin,
@@ -75,6 +79,10 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		character.SetLevel(level)
 		character.SetTitle(title)
 		character.SetAdmin(isAdmin)
+		character.SetBaseClassID(baseClassID)
+		character.SetClassID(classID)
+		character.SetOnlineTime(onlineTime)
+		character.SetExp(userExp)
 
 		if err != nil {
 			logger.Error.Panicln(err)
@@ -105,9 +113,9 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		buffer.WriteD(char.ClanId) //clanId
 		buffer.WriteD(0)           // Builder Level
 
-		buffer.WriteD(char.Sex)         //sex
-		buffer.WriteD(int32(char.Race)) // race
-		buffer.WriteD(char.BaseClass)   // baseclass
+		buffer.WriteD(char.Sex)           //sex
+		buffer.WriteD(int32(char.Race))   // race
+		buffer.WriteD(char.BaseClassID()) // baseclass
 
 		buffer.WriteD(1) // active ??
 
@@ -119,10 +127,10 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		buffer.WriteF(float64(char.CurHp)) //currentHP
 		buffer.WriteF(float64(char.CurMp)) //currentMP
 
-		buffer.WriteD(char.Sp)                                                 // SP
-		buffer.WriteQ(int64(char.Exp))                                         // EXP
-		buffer.WriteF(char.GetPercentFromCurrentLevel(char.Exp, char.Level())) // percent
-		buffer.WriteD(char.Level())                                            // level
+		buffer.WriteD(char.Sp)                                                   // SP
+		buffer.WriteQ(int64(char.EXP()))                                         // EXP
+		buffer.WriteF(char.GetPercentFromCurrentLevel(char.EXP(), char.Level())) // percent
+		buffer.WriteD(char.Level())                                              // level
 
 		buffer.WriteD(char.Karma)    // karma
 		buffer.WriteD(char.PkKills)  // pk
@@ -146,11 +154,11 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		buffer.WriteD(char.HairColor) //hairColor
 		buffer.WriteD(char.Face)      // face
 
-		buffer.WriteF(float64(char.MaxHp)) //max hp
-		buffer.WriteF(float64(char.MaxMp)) // max mp
+		buffer.WriteF(char.MaxHP()) //max hp
+		buffer.WriteF(char.MaxMP()) // max mp
 
-		buffer.WriteD(0)            // days left before
-		buffer.WriteD(char.ClassId) //classId
+		buffer.WriteD(0)              // days left before
+		buffer.WriteD(char.ClassID()) //classId
 
 		buffer.WriteD(1)          //auto-selected
 		buffer.WriteSingleByte(0) // enchanted

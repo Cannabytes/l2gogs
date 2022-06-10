@@ -29,9 +29,9 @@ func CharInfo(userI interfaces.CharacterI) []byte {
 
 	buffer.WriteS(user.PlayerName()) //name //TODO
 
-	buffer.WriteD(int32(user.Race)) //race ordinal //TODO
-	buffer.WriteD(user.Sex)         //sex
-	buffer.WriteD(user.BaseClass)   //baseClass
+	buffer.WriteD(int32(user.Race))   //race ordinal //TODO
+	buffer.WriteD(user.Sex)           //sex
+	buffer.WriteD(user.BaseClassID()) //baseClass
 
 	for _, v := range getPaperdollOrder() {
 		buffer.WriteD(int32(user.Paperdoll[v].Id))
@@ -101,8 +101,8 @@ func CharInfo(userI interfaces.CharacterI) []byte {
 	buffer.WriteH(0)       // Blue value for name (0 = white, 255 = pure blue)
 	buffer.WriteD(1000000) // ?
 
-	buffer.WriteD(user.ClassId) // getClassId().getId()
-	buffer.WriteD(0)            // ??
+	buffer.WriteD(user.ClassID()) // getClassId().getId()
+	buffer.WriteD(0)              // ??
 
 	buffer.WriteSingleByte(0) //_activeChar.isMounted() ? 0 : _activeChar.getEnchantEffect()
 	buffer.WriteSingleByte(0) //_activeChar.getTeam().getId()

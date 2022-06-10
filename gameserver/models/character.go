@@ -23,11 +23,11 @@ type (
 		objectId    int32
 		playerName  string
 		level       int32
-		MaxHp       float64
+		hp          float64
 		CurHp       float64
-		MaxMp       float64
+		mp          float64
 		CurMp       float64
-		MaxCp       float64
+		cp          float64
 		CurCp       float64
 		HpRegen     float64
 		MpRegen     float64
@@ -38,17 +38,17 @@ type (
 		Sex         int32
 		Coordinates *Coordinates
 		Heading     int32
-		Exp         int32
+		exp         int32
 		Sp          int32
 		Karma       int32
 		PvpKills    int32
 		PkKills     int32
 		ClanId      int32
 		Race        race.Race
-		ClassId     int32
-		BaseClass   int32
+		classID     int32
+		baseClassID int32
 		title       string
-		OnlineTime  uint32
+		onlineTime  uint32
 		Nobless     int32
 		Vitality    int32
 		isAdmin     bool
@@ -164,6 +164,91 @@ type (
 		UpdateType int16
 	}
 )
+
+// HP Возвращает HP персонажа
+func (c *Character) HP() float64 {
+	return c.hp
+}
+
+// SetHP Установить HP
+func (c *Character) SetHP(hp float64) {
+	c.hp = hp
+}
+
+// MP Возвращает MP персонажа
+func (c *Character) MP() float64 {
+	return c.mp
+}
+
+// SetMP Установить MP
+func (c *Character) SetMP(mp float64) {
+	c.mp = mp
+}
+
+// SetMP Установить дополнительно MP
+func (c *Character) SetAddMP(mp float64) {
+	c.mp += mp
+}
+
+// CP Возвращает CP персонажа
+func (c *Character) CP() float64 {
+	return c.cp
+}
+
+// SetCP Установить CP
+func (c *Character) SetCP(cp float64) {
+	c.cp = cp
+}
+
+// EXP Возвращает EXP
+func (c *Character) EXP() int32 {
+	return c.exp
+}
+
+// ExpAdd Добавляет к Exp ещё nExp
+func (c *Character) ExpAdd(nExp int32) {
+	c.exp += nExp
+}
+
+// SetExp Установить новый Exp
+func (c *Character) SetExp(nExp int32) {
+	c.exp = nExp
+}
+
+// BaseClassID Вернуть базовый класс игрока
+func (c *Character) BaseClassID() int32 {
+	return c.baseClassID
+}
+
+// SetBaseClassID Установить базовый класс игрока
+func (c *Character) SetBaseClassID(classID int) {
+	c.baseClassID = int32(classID)
+}
+
+// ClassID Вернуть актуальный класс игрока
+func (c *Character) ClassID() int32 {
+	return c.classID
+}
+
+// SetClassID Установить класс игрока
+func (c *Character) SetClassID(classID int) {
+	c.classID = int32(classID)
+}
+
+// OnlineTime Время проведенное игроком в игре
+func (c *Character) OnlineTime() uint32 {
+	return c.onlineTime
+}
+
+// SetOnlineTime Добавление времени (в сек) к времени персонажа в игре
+func (c *Character) SetOnlineTimeIncrement(nSecond int) {
+	c.onlineTime += uint32(nSecond)
+}
+
+// SetOnlineTime Установить значение времени персонажа в игре
+func (c *Character) SetOnlineTime(nSecond int) {
+	c.onlineTime = uint32(nSecond)
+}
 
 // ID персонажа
 func (c *Character) ObjectID() int32 {
@@ -326,7 +411,7 @@ func GetBuffSkill(charId int32) []*BuffUser {
 // Load загрузка персонажа
 func (c *Character) Load() {
 	c.InGame = true
-	c.ShortCut = RestoreMe(c.ObjectID(), c.ClassId)
+	c.ShortCut = RestoreMe(c.ObjectID(), c.ClassID())
 	c.SetBuff(GetBuffSkill(c.ObjectID()))
 	c.LoadSkills()
 	c.SkillQueue = make(chan SkillHolder)
@@ -342,10 +427,10 @@ func (c *Character) Load() {
 	}
 
 	//HP/MP/CP/REGEN соответствующий уровню
-	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level()]
-	c.MaxMp = LvlUpgain.Mp
-	c.MaxHp = LvlUpgain.Hp
-	c.MaxCp = LvlUpgain.Cp
+	LvlUpgain := AllStats[int(c.ClassID())].LvlUpgainData[c.Level()]
+	c.SetHP(LvlUpgain.Hp)
+	c.SetMP(LvlUpgain.Mp)
+	c.SetCP(LvlUpgain.Cp)
 	c.HpRegen = LvlUpgain.HpRegen
 	c.MpRegen = LvlUpgain.MpRegen
 	c.CpRegen = LvlUpgain.CpRegen
@@ -369,9 +454,10 @@ func (c *Character) Load() {
 
 // ResetHpMpStatLevel Установка значений на ХП,МП,ЦП, и реген по уровню
 func (c *Character) ResetHpMpStatLevel() {
-	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level()]
-	c.MaxMp = LvlUpgain.Mp
-	c.MaxHp = LvlUpgain.Hp
+	LvlUpgain := AllStats[int(c.ClassID())].LvlUpgainData[c.Level()]
+	c.SetHP(LvlUpgain.Hp)
+	c.SetMP(LvlUpgain.Mp)
+	c.SetCP(LvlUpgain.Cp)
 	c.CurHp = LvlUpgain.Cp
 	c.HpRegen = LvlUpgain.HpRegen
 	c.MpRegen = LvlUpgain.MpRegen
@@ -395,7 +481,7 @@ func (c *Character) CounterTimeInGamePlayer() {
 			logger.Info.Println("Счетчик времени в игре остановлен")
 			return
 		}
-		c.OnlineTime++
+		c.SetOnlineTimeIncrement(1)
 		time.Sleep(time.Second)
 	}
 }
@@ -484,10 +570,10 @@ func (c *Character) SkillItemListRefresh() bool {
 func (c *Character) bonusStatCalsSkills(skill Skill) {
 	effect := skill.Effect
 	if effect.PMaxHp != nil {
-		c.SkillsItemBonus.MaxHP = float64(skills.CapMath(c.MaxMp, skill.Effect.PMaxHp.Val, effect.PMaxHp.Cap))
+		c.SkillsItemBonus.MaxHP = float64(skills.CapMath(c.MaxHP(), skill.Effect.PMaxHp.Val, effect.PMaxHp.Cap))
 	}
 	if effect.PMaxMp != nil {
-		c.SkillsItemBonus.MaxMP = float64(skills.CapMath(c.MaxMp, skill.Effect.PMaxMp.Val, effect.PMaxMp.Cap))
+		c.SkillsItemBonus.MaxMP = float64(skills.CapMath(c.MaxMP(), skill.Effect.PMaxMp.Val, effect.PMaxMp.Cap))
 	}
 	if effect.PSpeed != nil {
 		c.SkillsItemBonus.Speed = float64(skills.CapMath(c.Stats.BaseMoveSpd.Run, skill.Effect.PSpeed.Val, effect.PSpeed.Cap))
@@ -516,12 +602,12 @@ func (c *Character) setStatPlayer(effect Effect, sb SkillBonus) SkillBonus {
 
 	if effect.PMaxHp != nil {
 		if effect.PMaxHp.Cap == "per" {
-			sb.MaxHP += c.MaxHp * effect.PMaxHp.Val / 100
+			sb.MaxHP += c.HP() * effect.PMaxHp.Val / 100
 		}
 	}
 	if effect.PMaxMp != nil {
 		if effect.PMaxMp.Cap == "per" {
-			sb.MaxMP += c.MaxMp * effect.PMaxMp.Val / 100
+			sb.MaxMP += c.MaxMP() * effect.PMaxMp.Val / 100
 		}
 	}
 	if effect.PSpeed != nil {
@@ -634,14 +720,14 @@ func (c *Character) BonusStatCals(item MyItem) {
 			c.Stats.BasePAtkSpd += int(v.Val)
 		}
 		if v.Type == "mp_bonus" {
-			c.MaxMp += v.Val
+			c.SetAddMP(v.Val)
 		}
 	}
 
 }
 
 func (c *Character) resetBonusStatCals() {
-	c.Stats = AllStats[int(c.ClassId)].StaticData
+	c.Stats = AllStats[int(c.ClassID())].StaticData
 }
 
 func (c *Character) GetInventoryLimit() int16 {
@@ -768,15 +854,15 @@ func (c *Character) ExistItemInInventory(objectItemId int32) *MyItem {
 
 //Возвращает общее кол-во ХП (дающее и с скиллы, с предметы и баффы)
 func (c *Character) MaxHP() float64 {
-	return c.MaxHp + c.SkillsItemBonus.MaxHP + c.SkillsBuffBonus.MaxHP
+	return c.HP() + c.SkillsItemBonus.MaxHP + c.SkillsBuffBonus.MaxHP
 }
 
 func (c *Character) MaxMP() float64 {
-	return c.MaxMp + c.SkillsItemBonus.MaxMP + c.SkillsBuffBonus.MaxMP
+	return c.MP() + c.SkillsItemBonus.MaxMP + c.SkillsBuffBonus.MaxMP
 }
 
 func (c *Character) MaxCP() float64 {
-	return c.MaxCp + c.SkillsItemBonus.MaxCP + c.SkillsBuffBonus.MaxCP
+	return c.CP() + c.SkillsItemBonus.MaxCP + c.SkillsBuffBonus.MaxCP
 }
 
 // GetMaxRunSpeed Возвращает скорость бега персонажа учитывая все баффы и .тд.
@@ -899,10 +985,6 @@ func (c *Character) CloseChannels() {
 	c.NpcInfo = nil
 	c.CharInfoTo = nil
 	c.DeleteObjectTo = nil
-}
-
-func (c *Character) GetClassId() int32 {
-	return c.ClassId
 }
 
 func (c *Character) GetSkillInfo(skill_id int) Skill {

@@ -19,15 +19,15 @@ func RenerationHpMpCp(clientI interfaces.ReciverAndSender) {
 		return
 	}
 	char.CurHp += char.HpRegen
-	if char.CurHp >= char.MaxHp {
+	if char.CurHp >= char.MaxHP() {
 		char.CurHp = clientI.Player().MaxHP()
 	}
 	char.CurMp += char.MpRegen
-	if char.CurMp >= char.MaxMp {
+	if char.CurMp >= char.MaxMP() {
 		char.CurMp = clientI.Player().MaxMP()
 	}
 	char.CurCp += char.CpRegen
-	if char.CurCp >= char.MaxCp {
+	if char.CurCp >= char.MaxCP() {
 		char.CurCp = clientI.Player().MaxCP()
 	}
 	pkg := serverpackets.StatusUpdate(clientI)

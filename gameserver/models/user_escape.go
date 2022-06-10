@@ -33,7 +33,7 @@ func (c *Client) saveOnlineTime() {
 	}
 	defer dbConn.Release()
 	sql := `UPDATE "characters" SET "online_time" = $1 WHERE "object_id" = $2`
-	_, err = dbConn.Exec(context.Background(), sql, c.CurrentChar.OnlineTime, c.CurrentChar.ObjectID())
+	_, err = dbConn.Exec(context.Background(), sql, c.CurrentChar.OnlineTime(), c.CurrentChar.ObjectID())
 	if err != nil {
 		logger.Error.Panicln(err)
 	}

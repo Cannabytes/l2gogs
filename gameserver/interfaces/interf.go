@@ -53,7 +53,7 @@ type CharacterI interface {
 	Spectator
 	EncryptAndSend(data []byte)
 	CloseChannels()
-	GetClassId() int32
+	ClassID() int32
 }
 type ReciverAndSender interface {
 	Receive() (opcode byte, data []byte, e error)
