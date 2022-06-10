@@ -26,7 +26,7 @@ func GetLoadCharacterScheme(clientI interfaces.ReciverAndSender) {
 	}
 	defer dbConn.Release()
 	sql := `SELECT id, char_id, name FROM "character_scheme" WHERE char_id=$1`
-	we, err := dbConn.Query(context.Background(), sql, client.GetCurrentChar().GetObjectId())
+	we, err := dbConn.Query(context.Background(), sql, client.Player().ObjectID())
 	if err != nil {
 		logger.Error.Println(err)
 		return
@@ -73,7 +73,7 @@ func SchemeSave(clientI interfaces.ReciverAndSender, schemeName string) bool {
 	if len(client.Buff()) == 0 {
 		return false
 	}
-	schemeId, ok := createRegistryScheme(client.GetObjectId(), schemeName)
+	schemeId, ok := createRegistryScheme(client.ObjectID(), schemeName)
 	if !ok {
 		logger.Error.Panicln("Добавление новой записи схемы бафа не произошла")
 		return false

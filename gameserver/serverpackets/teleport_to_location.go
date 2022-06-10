@@ -12,7 +12,7 @@ func TeleportToLocation(client interfaces.ReciverAndSender, x, y, z, h int) []by
 	defer packets.Put(buffer)
 
 	buffer.WriteSingleByte(0x22)
-	buffer.WriteD(client.GetCurrentChar().GetObjectId())
+	buffer.WriteD(client.Player().ObjectID())
 	buffer.WriteD(int32(x))
 	buffer.WriteD(int32(y))
 	buffer.WriteD(int32(z))

@@ -17,7 +17,7 @@ func MoveToLocation(location *models.BackwardToLocation, clientI interfaces.Reci
 
 	buffer.WriteSingleByte(0x2f)
 
-	buffer.WriteD(client.CurrentChar.ObjectId)
+	buffer.WriteD(client.CurrentChar.ObjectID())
 
 	buffer.WriteD(location.TargetX)
 	buffer.WriteD(location.TargetY)

@@ -15,9 +15,9 @@ func RegisterShortCut(sc dto.ShortCutDTO, client *Client) {
 	s, exist := shorts[sc.Slot+(sc.Page*MaxShortcutsPerBar)]
 
 	if exist {
-		deleteShortCutFromDb(s, client.CurrentChar.ObjectId, client.CurrentChar.ClassId)
+		deleteShortCutFromDb(s, client.CurrentChar.ObjectID(), client.CurrentChar.ClassId)
 	}
-	registerShortCutInDb(sc, client.CurrentChar.ObjectId, client.CurrentChar.ClassId)
+	registerShortCutInDb(sc, client.CurrentChar.ObjectID(), client.CurrentChar.ClassId)
 	client.CurrentChar.ShortCut[sc.Slot+(sc.Page*MaxShortcutsPerBar)] = sc
 }
 
@@ -101,7 +101,7 @@ func DeleteShortCut(slot, page int32, client *Client) {
 	if !ok {
 		return
 	}
-	deleteShortCutFromDb(e, client.CurrentChar.ObjectId, client.CurrentChar.ClassId)
+	deleteShortCutFromDb(e, client.CurrentChar.ObjectID(), client.CurrentChar.ClassId)
 	// todo Проверка на соски
 
 }

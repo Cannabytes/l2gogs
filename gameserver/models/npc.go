@@ -95,6 +95,10 @@ type Npc struct {
 	Spawn                   Locations
 }
 
+func (n Npc) ObjectID() int32 {
+	return n.ObjId
+}
+
 /**
 Структуры NPC пока пусты ибо не подготовил их реализацию и содержимое в правильном формате
 */

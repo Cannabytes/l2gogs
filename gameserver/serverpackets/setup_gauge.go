@@ -17,7 +17,7 @@ func SetupGauge(clientI interfaces.ReciverAndSender) []byte {
 	defer packets.Put(buffer)
 
 	buffer.WriteSingleByte(0x6b)
-	buffer.WriteD(client.CurrentChar.ObjectId)
+	buffer.WriteD(client.CurrentChar.ObjectID())
 	buffer.WriteD(0) // color 0-blue 1-red 2-cyan 3-green
 
 	buffer.WriteD(4132)

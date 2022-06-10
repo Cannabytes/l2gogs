@@ -47,11 +47,11 @@ func NewRequestTrade(senderI, recipientI interfaces.CharacterI) {
 
 	u := &Exchange{
 		Sender: Action{
-			ObjectId: sender.ObjectId,
+			ObjectId: sender.ObjectID(),
 			Client:   sender,
 		},
 		Recipient: Action{
-			ObjectId: recipient.ObjectId,
+			ObjectId: recipient.ObjectID(),
 			Client:   recipient,
 		},
 		Status: Wait,
@@ -63,7 +63,7 @@ func NewRequestTrade(senderI, recipientI interfaces.CharacterI) {
 //Answer Когда пользователь отвечает "Да" или "нет" на предложение торговать
 func Answer(client interfaces.CharacterI) (*Exchange, bool) {
 	for _, exchange := range allTrade {
-		if exchange.Recipient.ObjectId == client.GetObjectId() {
+		if exchange.Recipient.ObjectId == client.ObjectID() {
 			exchange.ChangeStatusTrade(During)
 			//Теперь отправляем пакет на "открытие" окна обмена
 			return exchange, true
@@ -79,7 +79,7 @@ func (e *Exchange) ChangeStatusTrade(st StatusTrade) {
 func AddItemTrade(client interfaces.CharacterI, objectId int32, count int64) (*models.MyItem, interfaces.CharacterI, bool) {
 	for _, exchange := range allTrade {
 		//Проверяем, есть ли предмет в инвентаре
-		if exchange.Sender.ObjectId == client.GetObjectId() {
+		if exchange.Sender.ObjectId == client.ObjectID() {
 			if item, ok := models.ExistItemObject(client, objectId, count); ok {
 				//Проверяем, уже добавили предмет в трейд на обмене
 				if exchange.ExistItemTradeObject(client, objectId) {
@@ -92,7 +92,7 @@ func AddItemTrade(client interfaces.CharacterI, objectId int32, count int64) (*m
 			} else {
 				logger.Info.Println("Не найден предмет или неверное количество предметов")
 			}
-		} else if exchange.Recipient.ObjectId == client.GetObjectId() {
+		} else if exchange.Recipient.ObjectId == client.ObjectID() {
 			if item, ok := models.ExistItemObject(client, objectId, count); ok {
 				if exchange.ExistItemTradeObject(client, objectId) {
 					logger.Info.Println("Вы уже добавили этот предмет в инвентарь")
@@ -112,14 +112,14 @@ func AddItemTrade(client interfaces.CharacterI, objectId int32, count int64) (*m
 //ExistItemTradeObject Проверяет, есть ли в трайде уже добавленный X предмет
 func (e *Exchange) ExistItemTradeObject(client interfaces.CharacterI, objectid int32) bool {
 	for _, exchanges := range allTrade {
-		if exchanges.Sender.ObjectId == client.GetObjectId() {
+		if exchanges.Sender.ObjectId == client.ObjectID() {
 			for _, exchange := range exchanges.Sender.Items {
 				if exchange.ObjId == objectid {
 					return true
 				}
 			}
 		}
-		if exchanges.Recipient.ObjectId == client.GetObjectId() {
+		if exchanges.Recipient.ObjectId == client.ObjectID() {
 			for _, exchange := range exchanges.Recipient.Items {
 				if exchange.ObjId == objectid {
 					return true
@@ -135,11 +135,11 @@ func (e *Exchange) ExistItemTradeObject(client interfaces.CharacterI, objectid i
 func FindTrade(client interfaces.CharacterI) (interfaces.CharacterI, *Exchange, bool) {
 	var playerTo interfaces.CharacterI
 	for _, exchange := range allTrade {
-		if exchange.Sender.ObjectId == client.GetObjectId() {
+		if exchange.Sender.ObjectId == client.ObjectID() {
 			playerTo = exchange.Recipient.Client
 			exchange.ChangeStatusTrade(Cancel)
 			return playerTo, exchange, true
-		} else if exchange.Recipient.ObjectId == client.GetObjectId() {
+		} else if exchange.Recipient.ObjectId == client.ObjectID() {
 			playerTo = exchange.Sender.Client
 			exchange.ChangeStatusTrade(Cancel)
 			return playerTo, exchange, true
@@ -152,7 +152,7 @@ func FindTrade(client interfaces.CharacterI) (interfaces.CharacterI, *Exchange, 
 // UserClear Очистка информации трейде
 func UserClear(client interfaces.CharacterI) bool {
 	for index, exchange := range allTrade {
-		if exchange.Sender.ObjectId == client.GetObjectId() || exchange.Recipient.ObjectId == client.GetObjectId() {
+		if exchange.Sender.ObjectId == client.ObjectID() || exchange.Recipient.ObjectId == client.ObjectID() {
 			allTrade = append(allTrade[:index], allTrade[index+1:]...)
 			return true
 		}
@@ -181,7 +181,7 @@ func TradeAddInventory(clientI, player2I interfaces.CharacterI, exchange *Exchan
 		logger.Error.Panicln("TradeAddInventory clientI not character")
 	}
 	for _, itm := range exchange.Sender.Items {
-		if exchange.Sender.ObjectId == client.GetObjectId() {
+		if exchange.Sender.ObjectId == client.ObjectID() {
 			UpdateInfo = removeAndAdd(client, player2, itm, itm.Count)
 		} else {
 			UpdateInfo = removeAndAdd(player2, client, itm, itm.Count)
@@ -189,7 +189,7 @@ func TradeAddInventory(clientI, player2I interfaces.CharacterI, exchange *Exchan
 	}
 
 	for _, itm := range exchange.Recipient.Items {
-		if exchange.Sender.ObjectId == client.ObjectId {
+		if exchange.Sender.ObjectId == client.ObjectID() {
 			UpdateInfo = removeAndAdd(player2, client, itm, itm.Count)
 		} else {
 			UpdateInfo = removeAndAdd(client, player2, itm, itm.Count)

@@ -234,8 +234,8 @@ func parseVariableBoard(clientI interfaces.ReciverAndSender, htmlcode *string) *
 		Server_time  string
 		Buff_scheme  []*models.BuffScheme
 	}{
-		Player_name:  clientI.GetCurrentChar().GetName(),
-		Player_class: strconv.Itoa(int(clientI.GetCurrentChar().GetClassId())),
+		Player_name:  clientI.Player().PlayerName(),
+		Player_class: strconv.Itoa(int(clientI.Player().GetClassId())),
 		Server_time:  time.Now().Format(time.Stamp),
 		Buff_scheme:  client.BuffScheme,
 	}

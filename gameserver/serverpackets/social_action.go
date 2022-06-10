@@ -16,7 +16,7 @@ func SocialAction(clientI interfaces.ReciverAndSender) []byte {
 	defer packets.Put(buffer)
 
 	buffer.WriteSingleByte(0x27)
-	buffer.WriteD(client.CurrentChar.ObjectId)
+	buffer.WriteD(client.CurrentChar.ObjectID())
 	buffer.WriteD(3)
 
 	return buffer.Bytes()

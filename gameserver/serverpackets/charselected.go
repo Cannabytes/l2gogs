@@ -18,26 +18,26 @@ func CharSelected(user *models.Character, clientI interfaces.ReciverAndSender) [
 	x, y, z := user.GetXYZ()
 	buffer.WriteSingleByte(0x0b) // 1
 
-	buffer.WriteS(user.CharName)    // 11
-	buffer.WriteD(user.ObjectId)    // objId 15
-	buffer.WriteS(user.Title)       //title // 21 2 нуля
-	buffer.WriteD(0)                //TODO sessionId //25
-	buffer.WriteD(user.ClanId)      //clanId // 29
-	buffer.WriteD(0)                // ? //33
-	buffer.WriteD(user.Sex)         //sex// 37
-	buffer.WriteD(int32(user.Race)) //race 41
-	buffer.WriteD(user.ClassId)     //classId 45
-	buffer.WriteD(0x1)              // ? 49
-	buffer.WriteD(x)                //x 53
-	buffer.WriteD(y)                //y 57
-	buffer.WriteD(z)                //z 61
+	buffer.WriteS(user.PlayerName()) // 11
+	buffer.WriteD(user.ObjectID())   // objId 15
+	buffer.WriteS(user.Title())      //title // 21 2 нуля
+	buffer.WriteD(0)                 //TODO sessionId //25
+	buffer.WriteD(user.ClanId)       //clanId // 29
+	buffer.WriteD(0)                 // ? //33
+	buffer.WriteD(user.Sex)          //sex// 37
+	buffer.WriteD(int32(user.Race))  //race 41
+	buffer.WriteD(user.ClassId)      //classId 45
+	buffer.WriteD(0x1)               // ? 49
+	buffer.WriteD(x)                 //x 53
+	buffer.WriteD(y)                 //y 57
+	buffer.WriteD(z)                 //z 61
 
 	buffer.WriteF(float64(user.CurHp)) //currentHP 69
 	buffer.WriteF(float64(user.CurMp)) //currentMP 77
 
 	buffer.WriteD(user.Sp)         // SP 81
 	buffer.WriteQ(int64(user.Exp)) // EXP 89
-	buffer.WriteD(user.Level)      // level 93
+	buffer.WriteD(user.Level())    // level 93
 	buffer.WriteD(user.Karma)      // karma 97
 	buffer.WriteD(user.PkKills)    // pk 101
 

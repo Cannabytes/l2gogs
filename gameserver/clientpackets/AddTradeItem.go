@@ -18,7 +18,7 @@ func AddTradeItem(data []byte, client interfaces.ReciverAndSender) {
 	objectId := packet.ReadInt32() // objectId предмета
 	count := packet.ReadUInt64()
 
-	item, toUser, ok := trade.AddItemTrade(client.GetCurrentChar(), objectId, int64(count))
+	item, toUser, ok := trade.AddItemTrade(client.Player(), objectId, int64(count))
 	if !ok {
 		logger.Info.Println("Не добавлен предмет")
 		return

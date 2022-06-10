@@ -19,7 +19,7 @@ func TargetUnselected(clientI interfaces.ReciverAndSender) []byte {
 	x, y, z := client.CurrentChar.GetXYZ()
 
 	buffer.WriteSingleByte(0x24)
-	buffer.WriteD(client.CurrentChar.ObjectId)
+	buffer.WriteD(client.CurrentChar.ObjectID())
 	buffer.WriteD(x)
 	buffer.WriteD(y)
 	buffer.WriteD(z)

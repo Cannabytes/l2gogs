@@ -18,7 +18,7 @@ func AnswerTradeRequest(data []byte, sender interfaces.ReciverAndSender) {
 		return
 	}
 
-	exchange, ok := trade.Answer(sender.GetCurrentChar())
+	exchange, ok := trade.Answer(sender.Player())
 	if ok {
 		buffer := packets.Get()
 		defer packets.Put(buffer)

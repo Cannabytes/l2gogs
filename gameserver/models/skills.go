@@ -239,7 +239,7 @@ func GetLevelSkills(clientI interfaces.ReciverAndSender) {
 	}
 
 	classId := int(client.CurrentChar.ClassId)
-	charLevel := int(client.CurrentChar.Level)
+	charLevel := int(client.CurrentChar.Level())
 
 	var all []TreesSkills
 	userClassSkill, parentClassId := getSkillClassParent(classId, charLevel)

@@ -45,7 +45,7 @@ func DropItem(clientI interfaces.ReciverAndSender, objectId int32, count int64, 
 		defer packets.Put(buffer)
 
 		buffer.WriteSingleByte(0x16)
-		buffer.WriteD(client.CurrentChar.ObjectId)
+		buffer.WriteD(client.CurrentChar.ObjectID())
 		buffer.WriteD(objectId)
 		buffer.WriteD(int32(itemId))
 		buffer.WriteD(x)

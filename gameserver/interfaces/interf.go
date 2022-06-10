@@ -4,16 +4,16 @@ type Identifier interface {
 	GetId() int32
 }
 type Spectator interface {
-	GetMaxHP() float64
-	GetMaxMP() float64
-	GetMaxCP() float64
-	GetMaxRunSpeed() float64
+	MaxHP() float64
+	MaxMP() float64
+	MaxCP() float64
+	MaxRunSpeed() float64
 }
 type UniquerId interface {
-	GetObjectId() int32
+	ObjectID() int32
 }
 type Namer interface {
-	GetName() string
+	PlayerName() string
 }
 type Other interface {
 	SetStatusOffline()
@@ -61,5 +61,5 @@ type ReciverAndSender interface {
 	Send(data []byte)
 	EncryptAndSend(data []byte)
 	CryptAndReturnPackageReadyToShip(data []byte) []byte
-	GetCurrentChar() CharacterI
+	Player() CharacterI
 }

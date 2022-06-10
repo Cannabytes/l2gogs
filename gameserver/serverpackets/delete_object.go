@@ -10,7 +10,7 @@ func DeleteObject(character *models.Character) []byte {
 	defer packets.Put(buffer)
 
 	buffer.WriteSingleByte(0x08)
-	buffer.WriteD(character.ObjectId)
+	buffer.WriteD(character.ObjectID())
 	buffer.WriteD(0)
 	return buffer.Bytes()
 }

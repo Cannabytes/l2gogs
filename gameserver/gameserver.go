@@ -13,7 +13,7 @@ func GetNetConnByCharacterObjectId(objId int32) interfaces.ReciverAndSender {
 }
 func GetNetConnByCharacterName(name string) interfaces.ReciverAndSender {
 	for i, v := range OnlineCharacters.Char {
-		if v.GetName() == name {
+		if v.PlayerName() == name {
 			return OnlineCharacters.Char[i].Conn
 		}
 	}
@@ -22,7 +22,7 @@ func GetNetConnByCharacterName(name string) interfaces.ReciverAndSender {
 
 func GetNetConnByCharObjectId(id int32) interfaces.CharacterI {
 	for i, v := range OnlineCharacters.Char {
-		if v.GetObjectId() == id {
+		if v.ObjectID() == id {
 			return OnlineCharacters.Char[i]
 		}
 	}
@@ -35,18 +35,18 @@ func AddOnlineChar(character interfaces.CharacterI) {
 		logger.Error.Panicln("addOnlineCharlogger.Error.Panicln")
 	}
 	ch.InGame = true
-	OnlineCharacters.Char[character.GetObjectId()] = ch
+	OnlineCharacters.Char[character.ObjectID()] = ch
 }
 
 func CharOffline(client interfaces.ReciverAndSender) {
 	OnlineCharacters.Mu.Lock()
-	OnlineCharacters.Char[client.GetCurrentChar().GetObjectId()].InGame = false
-	delete(OnlineCharacters.Char, client.GetCurrentChar().GetObjectId())
+	OnlineCharacters.Char[client.Player().ObjectID()].InGame = false
+	delete(OnlineCharacters.Char, client.Player().ObjectID())
 	OnlineCharacters.Mu.Unlock()
-	client.GetCurrentChar().GetCurrentRegion().DeleteVisibleChar(client.GetCurrentChar())
-	client.GetCurrentChar().CloseChannels()
+	client.Player().GetCurrentRegion().DeleteVisibleChar(client.Player())
+	client.Player().CloseChannels()
 	//todo close all character goroutine, save info in DB
-	logger.Info.Println("Socket Close For: ", client.GetCurrentChar().GetName())
+	logger.Info.Println("Socket Close For: ", client.Player().PlayerName())
 }
 
 //
@@ -173,14 +173,14 @@ func CharOffline(client interfaces.ReciverAndSender) {
 //
 //func (g *GameServer) charOffline(client interfaces.ReciverAndSender) {
 //	g.OnlineCharacters.Mu.Lock()
-//	delete(g.OnlineCharacters.Char, client.GetCurrentChar().GetObjectId())
+//	delete(g.OnlineCharacters.Char, client.Player().GetObjectId())
 //	g.OnlineCharacters.Mu.Unlock()
-//	client.GetCurrentChar().GetCurrentRegion().DeleteVisibleChar(client.GetCurrentChar())
+//	client.Player().GetCurrentRegion().DeleteVisibleChar(client.Player())
 //
-//	client.GetCurrentChar().CloseChannels()
+//	client.Player().CloseChannels()
 //
 //	//todo close all character goroutine, save info in DB
-//	logger.Info.Println("Socket Close For: ", client.GetCurrentChar().GetName())
+//	logger.Info.Println("Socket Close For: ", client.Player().GetName())
 //}
 //
 //func (g *GameServer) addOnlineChar(character interfaces.CharacterI) {

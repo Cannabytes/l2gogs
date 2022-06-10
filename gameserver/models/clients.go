@@ -169,6 +169,6 @@ func (c *Client) sendDataToSocket(data []byte) error {
 	return err
 }
 
-func (c *Client) GetCurrentChar() interfaces.CharacterI {
+func (c *Client) Player() interfaces.CharacterI {
 	return c.CurrentChar
 }

@@ -11,7 +11,7 @@ func ExBrExtraUserInfo(client interfaces.CharacterI) []byte {
 
 	buffer.WriteSingleByte(0xFE)
 	buffer.WriteH(0xDA)
-	buffer.WriteD(client.GetObjectId())
+	buffer.WriteD(client.ObjectID())
 	buffer.WriteD(0) /** Event abnormal visual effects map. */
 	buffer.WriteD(0) /** Lecture mark. */
 

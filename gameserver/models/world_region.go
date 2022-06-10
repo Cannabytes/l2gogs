@@ -23,10 +23,10 @@ func NewWorldRegion(x, y, z int32) *WorldRegion {
 }
 
 func (w *WorldRegion) AddVisibleChar(character interfaces.CharacterI) {
-	w.CharsInRegion.Store(character.GetObjectId(), character)
+	w.CharsInRegion.Store(character.ObjectID(), character)
 }
 func (w *WorldRegion) DeleteVisibleChar(character interfaces.CharacterI) {
-	w.CharsInRegion.Delete(character.GetObjectId())
+	w.CharsInRegion.Delete(character.ObjectID())
 }
 
 func (w *WorldRegion) AddVisibleNpc(npc Npc) {
@@ -85,7 +85,7 @@ func GetAroundPlayerObjId(c *Character) []int32 {
 
 	for _, v := range currentRegion.GetNeighbors() {
 		for _, vv := range v.GetCharsInRegion() {
-			result = append(result, vv.GetObjectId())
+			result = append(result, vv.ObjectID())
 		}
 	}
 	return result
@@ -107,7 +107,7 @@ func GetAroundPlayersInRadius(c interfaces.CharacterI, radius int32) []*Characte
 			if !ok {
 				continue
 			}
-			if char.GetObjectId() == c.GetObjectId() {
+			if char.ObjectID() == c.ObjectID() {
 				continue
 			}
 			dx := math.Abs(float64(char.Coordinates.X - c.GetX()))
@@ -148,7 +148,7 @@ func GetAroundPlayersObjIdInRadius(c *Character, radius int32) []int32 {
 			if !ok {
 				continue
 			}
-			if char.ObjectId == c.ObjectId {
+			if char.ObjectID() == c.ObjectID() {
 				continue
 			}
 			dx := math.Abs(float64(char.Coordinates.X - c.Coordinates.X))
@@ -165,7 +165,7 @@ func GetAroundPlayersObjIdInRadius(c *Character, radius int32) []int32 {
 				continue
 			}
 
-			result = append(result, char.ObjectId)
+			result = append(result, char.ObjectID())
 
 		}
 	}

@@ -18,7 +18,7 @@ func ChangeWaitType(clientI interfaces.ReciverAndSender) []byte {
 	locx, locy, locz := client.CurrentChar.GetXYZ()
 
 	buffer.WriteSingleByte(0x29)
-	buffer.WriteD(client.CurrentChar.ObjectId)
+	buffer.WriteD(client.CurrentChar.ObjectID())
 	buffer.WriteD(client.CurrentChar.SetSitStandPose())
 	buffer.WriteD(locx)
 	buffer.WriteD(locy)

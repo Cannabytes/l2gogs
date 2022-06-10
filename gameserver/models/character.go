@@ -19,10 +19,10 @@ import (
 
 type (
 	Character struct {
-		Login       string
-		ObjectId    int32
-		CharName    string
-		Level       int32
+		login       string
+		objectId    int32
+		playerName  string
+		level       int32
 		MaxHp       float64
 		CurHp       float64
 		MaxMp       float64
@@ -47,11 +47,11 @@ type (
 		Race        race.Race
 		ClassId     int32
 		BaseClass   int32
-		Title       string
+		title       string
 		OnlineTime  uint32
 		Nobless     int32
 		Vitality    int32
-		IsAdmin     bool
+		isAdmin     bool
 		NameColor   string
 		TitleColor  string
 
@@ -165,19 +165,76 @@ type (
 	}
 )
 
-//Сбрасывает все бонусы скиллов предмета
+// ID персонажа
+func (c *Character) ObjectID() int32 {
+	return c.objectId
+}
+
+// Установить ID персонажа
+func (c *Character) SetObjectID(objectID int) {
+	c.objectId = int32(objectID)
+}
+
+// Название аккаунта (Login)
+func (c *Character) AccountName() string {
+	return c.login
+}
+
+// SetAccountName Установить название аккаунта
+func (c *Character) SetAccountName(login string) {
+	c.login = login
+}
+
+// PlayerName Ник персонажа
+func (c *Character) PlayerName() string {
+	return c.playerName
+}
+
+// SetPlayerName Установить ник персонажу
+func (c *Character) SetPlayerName(name string) {
+	c.playerName = name
+}
+
+// Level Уровень игрока
+func (c *Character) Level() int32 {
+	return c.level
+}
+
+// SetLevel Установить уровень игрока
+func (c *Character) SetLevel(level int) {
+	c.level = int32(level)
+}
+
+// ResetSkillItemBonus Сбрасывает все бонусы скиллов предмета
 func (c *Character) ResetSkillItemBonus() {
 	c.SkillsItem = nil
+	c.SkillsItemBonus = SkillBonus{
+		MaxHP:        0,
+		MaxMP:        0,
+		MaxCP:        0,
+		Speed:        0,
+		PDef:         0,
+		MDef:         0,
+		PAtk:         0,
+		MAtk:         0,
+		AtkSpd:       0,
+		MAtkSpd:      0,
+		CriticalRate: 0,
+	}
+}
 
-	c.SkillsItemBonus.MaxHP = 0
-	c.SkillsItemBonus.MaxMP = 0
-	c.SkillsItemBonus.MaxCP = 0
+// Title Титул игрока
+func (c *Character) Title() string {
+	return c.title
+}
 
-	c.SkillsItemBonus.Speed = 0
-	c.SkillsItemBonus.PDef = 0
+// SetTitle Установить титул игроку
+func (c *Character) SetTitle(title string) {
+	c.title = title
 }
 
 // ResetSkillBuffBonus Сбрасывает все бонусы скиллов баффа
+// Обязательно нужно перечислить все статы, которые необходимо сбросить
 func (c *Character) resetSkillBuffBonus() {
 	c.SkillsBuffBonus = SkillBonus{
 		MaxHP: 0,
@@ -269,11 +326,11 @@ func GetBuffSkill(charId int32) []*BuffUser {
 // Load загрузка персонажа
 func (c *Character) Load() {
 	c.InGame = true
-	c.ShortCut = RestoreMe(c.ObjectId, c.ClassId)
-	c.SetBuff(GetBuffSkill(c.ObjectId))
+	c.ShortCut = RestoreMe(c.ObjectID(), c.ClassId)
+	c.SetBuff(GetBuffSkill(c.ObjectID()))
 	c.LoadSkills()
 	c.SkillQueue = make(chan SkillHolder)
-	c.Inventory = GetMyItems(c.ObjectId)
+	c.Inventory = GetMyItems(c.ObjectID())
 	c.Paperdoll = c.LoadingVisibleInventory()
 
 	c.LoadCharactersMacros()
@@ -285,7 +342,7 @@ func (c *Character) Load() {
 	}
 
 	//HP/MP/CP/REGEN соответствующий уровню
-	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level]
+	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level()]
 	c.MaxMp = LvlUpgain.Mp
 	c.MaxHp = LvlUpgain.Hp
 	c.MaxCp = LvlUpgain.Cp
@@ -312,13 +369,23 @@ func (c *Character) Load() {
 
 // ResetHpMpStatLevel Установка значений на ХП,МП,ЦП, и реген по уровню
 func (c *Character) ResetHpMpStatLevel() {
-	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level]
+	LvlUpgain := AllStats[int(c.ClassId)].LvlUpgainData[c.Level()]
 	c.MaxMp = LvlUpgain.Mp
 	c.MaxHp = LvlUpgain.Hp
 	c.CurHp = LvlUpgain.Cp
 	c.HpRegen = LvlUpgain.HpRegen
 	c.MpRegen = LvlUpgain.MpRegen
 	c.CpRegen = LvlUpgain.CpRegen
+}
+
+// IsAdmin Имеет ли игрок статус админа
+func (c *Character) IsAdmin() bool {
+	return c.isAdmin
+}
+
+// SetAdmin Применить к пользователю статус админа
+func (c *Character) SetAdmin(privilege bool) {
+	c.isAdmin = privilege
 }
 
 // CounterTimeInGamePlayer Время игрока нахождения в игре
@@ -393,7 +460,7 @@ func (c *Character) AddBonusSkill(s Skill) {
 	c.SkillsItem = append(c.SkillsItem, s)
 }
 
-// Получение списка скиллов надетых предметов
+// SkillItemListRefresh Получение списка скиллов надетых предметов
 // Возвращается true если скиллы были изменены
 func (c *Character) SkillItemListRefresh() bool {
 	c.ResetSkillItemBonus()
@@ -427,7 +494,7 @@ func (c *Character) bonusStatCalsSkills(skill Skill) {
 	}
 }
 
-// AllStatsRefresh Обновление счетчика всех статов персонажа
+// StatsRefresh Обновление счетчика всех статов персонажа
 // По задумке творца, это необходимо использовать всякий раз при новом баффе, при надевании шмотки/оружия/бижи если имеются эффекты у него.
 func (c *Character) StatsRefresh() {
 	c.resetBonusStatCals()
@@ -567,7 +634,7 @@ func (c *Character) BonusStatCals(item MyItem) {
 			c.Stats.BasePAtkSpd += int(v.Val)
 		}
 		if v.Type == "mp_bonus" {
-			c.MaxMp += (v.Val)
+			c.MaxMp += v.Val
 		}
 	}
 
@@ -635,10 +702,10 @@ func (c *Character) setWorldRegion(newRegion interfaces.WorldRegioner) {
 		if !Contains(newAreas, region) {
 
 			for _, v := range region.GetCharsInRegion() {
-				if v.GetObjectId() == c.GetObjectId() {
+				if v.ObjectID() == c.ObjectID() {
 					continue
 				}
-				deleteObjectPkgTo = append(deleteObjectPkgTo, v.GetObjectId())
+				deleteObjectPkgTo = append(deleteObjectPkgTo, v.ObjectID())
 			}
 		}
 	}
@@ -652,10 +719,10 @@ func (c *Character) setWorldRegion(newRegion interfaces.WorldRegioner) {
 	for _, region := range newAreas {
 		if !Contains(oldAreas, region) {
 			for _, v := range region.GetCharsInRegion() {
-				if v.GetObjectId() == c.GetObjectId() {
+				if v.ObjectID() == c.ObjectID() {
 					continue
 				}
-				charInfoPkgTo = append(charInfoPkgTo, v.GetObjectId())
+				charInfoPkgTo = append(charInfoPkgTo, v.ObjectID())
 			}
 
 			npcPkgTo = append(npcPkgTo, region.GetNpcInRegion()...)
@@ -699,28 +766,21 @@ func (c *Character) ExistItemInInventory(objectItemId int32) *MyItem {
 	return nil
 }
 
-func (c *Character) GetObjectId() int32 {
-	return c.ObjectId
-}
-func (c *Character) GetName() string {
-	return c.CharName
-}
-
 //Возвращает общее кол-во ХП (дающее и с скиллы, с предметы и баффы)
-func (c *Character) GetMaxHP() float64 {
+func (c *Character) MaxHP() float64 {
 	return c.MaxHp + c.SkillsItemBonus.MaxHP + c.SkillsBuffBonus.MaxHP
 }
 
-func (c *Character) GetMaxMP() float64 {
+func (c *Character) MaxMP() float64 {
 	return c.MaxMp + c.SkillsItemBonus.MaxMP + c.SkillsBuffBonus.MaxMP
 }
 
-func (c *Character) GetMaxCP() float64 {
+func (c *Character) MaxCP() float64 {
 	return c.MaxCp + c.SkillsItemBonus.MaxCP + c.SkillsBuffBonus.MaxCP
 }
 
 // GetMaxRunSpeed Возвращает скорость бега персонажа учитывая все баффы и .тд.
-func (c *Character) GetMaxRunSpeed() float64 {
+func (c *Character) MaxRunSpeed() float64 {
 	return c.Stats.BaseMoveSpd.Run + c.SkillsItemBonus.Speed + c.SkillsBuffBonus.Speed
 }
 

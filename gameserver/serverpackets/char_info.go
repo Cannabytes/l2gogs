@@ -25,9 +25,9 @@ func CharInfo(userI interfaces.CharacterI) []byte {
 
 	buffer.WriteD(0) // Vehicle
 
-	buffer.WriteD(user.ObjectId) //objId
+	buffer.WriteD(user.ObjectID()) //objId
 
-	buffer.WriteS(user.CharName) //name //TODO
+	buffer.WriteS(user.PlayerName()) //name //TODO
 
 	buffer.WriteD(int32(user.Race)) //race ordinal //TODO
 	buffer.WriteD(user.Sex)         //sex
@@ -72,7 +72,7 @@ func CharInfo(userI interfaces.CharacterI) []byte {
 	buffer.WriteD(user.HairColor) //hairColor
 	buffer.WriteD(user.Face)      //face
 
-	buffer.WriteS(user.Title) //title
+	buffer.WriteS(user.Title()) //title
 
 	buffer.WriteD(0) //cursedW
 	buffer.WriteD(0) //cursedW

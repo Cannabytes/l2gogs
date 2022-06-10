@@ -11,7 +11,7 @@ func TradeSendRequest(target interfaces.CharacterI) []byte {
 	defer packets.Put(buffer)
 
 	buffer.WriteSingleByte(0x70)
-	buffer.WriteD(target.GetObjectId())
+	buffer.WriteD(target.ObjectID())
 
 	return buffer.Bytes()
 }
@@ -21,7 +21,7 @@ func TradeStart(player *models.Character) []byte {
 	defer packets.Put(buffer)
 
 	buffer.WriteSingleByte(0x14)
-	buffer.WriteD(player.ObjectId)
+	buffer.WriteD(player.ObjectID())
 	buffer.WriteH(int16(len(player.Inventory.Items)))
 	for _, item := range player.Inventory.Items {
 		buffer.WriteD(item.ObjId)           // ObjectId

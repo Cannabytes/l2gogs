@@ -19,7 +19,7 @@ func Attack(clientI interfaces.ReciverAndSender, targetObjId, targetX, targetY, 
 
 	buffer.WriteSingleByte(0x33)
 
-	buffer.WriteD(client.CurrentChar.ObjectId)
+	buffer.WriteD(client.CurrentChar.ObjectID())
 
 	buffer.WriteD(targetObjId)
 	buffer.WriteD(4)

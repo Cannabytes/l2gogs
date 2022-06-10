@@ -23,7 +23,7 @@ func MoveToPawn(client *models.Character) []byte {
 	//writeD(_tz);
 
 	buffer.WriteSingleByte(0x72)
-	buffer.WriteD(client.ObjectId)
+	buffer.WriteD(client.ObjectID())
 	buffer.WriteD(client.Target)
 	buffer.WriteD(0)
 

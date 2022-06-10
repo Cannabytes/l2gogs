@@ -28,7 +28,7 @@ func Action(data []byte, clientI interfaces.ReciverAndSender) *models.BackwardTo
 	buffer := packets.Get()
 	defer packets.Put(buffer)
 
-	pkg := serverpackets.TargetSelected(client.CurrentChar.ObjectId, objectId, originX, originY, originZ)
+	pkg := serverpackets.TargetSelected(client.CurrentChar.ObjectID(), objectId, originX, originY, originZ)
 	buffer.WriteSlice(client.CryptAndReturnPackageReadyToShip(pkg))
 
 	client.Send(buffer.Bytes())

@@ -30,11 +30,17 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 	for rows.Next() {
 		var character = models.GetNewCharacterModel()
 		var coord models.Coordinates
+		isAdmin := false
+		objectID := 0
+		accountName := ""
+		playerName := ""
+		title := ""
+		level := 0
 		err = rows.Scan(
-			&character.Login,
-			&character.ObjectId,
-			&character.CharName,
-			&character.Level,
+			&accountName,
+			&objectID,
+			&playerName,
+			&level,
 			//&character.MaxHp, //Диприкейтед: мы макс ХП,МП получаем исходя из уровня, скиллов.
 			&character.CurHp,
 			//&character.MaxMp, //Диприкейтед: мы макс ХП,МП получаем исходя из уровня, скиллов.
@@ -55,14 +61,21 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 			&character.Race,
 			&character.ClassId,
 			&character.BaseClass,
-			&character.Title,
+			&title,
 			&character.OnlineTime,
 			&character.Nobless,
 			&character.Vitality,
-			&character.IsAdmin,
+			&isAdmin,
 			&character.NameColor,
 			&character.TitleColor,
 		)
+		character.SetObjectID(objectID)
+		character.SetAccountName(accountName)
+		character.SetPlayerName(playerName)
+		character.SetLevel(level)
+		character.SetTitle(title)
+		character.SetAdmin(isAdmin)
+
 		if err != nil {
 			logger.Error.Panicln(err)
 		}
@@ -83,10 +96,10 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 	for _, char := range client.Account.Char {
 		char.ResetHpMpStatLevel()
 
-		buffer.WriteS(char.CharName) // Pers name
+		buffer.WriteS(char.PlayerName()) // Pers name
 
-		buffer.WriteD(char.ObjectId) // objId
-		buffer.WriteS(char.Login)    // loginName
+		buffer.WriteD(char.ObjectID())    // objId
+		buffer.WriteS(char.AccountName()) // loginName
 
 		buffer.WriteD(0)           //TODO sessionId
 		buffer.WriteD(char.ClanId) //clanId
@@ -106,10 +119,10 @@ func CharSelectionInfo(clientI interfaces.ReciverAndSender) []byte {
 		buffer.WriteF(float64(char.CurHp)) //currentHP
 		buffer.WriteF(float64(char.CurMp)) //currentMP
 
-		buffer.WriteD(char.Sp)                                               // SP
-		buffer.WriteQ(int64(char.Exp))                                       // EXP
-		buffer.WriteF(char.GetPercentFromCurrentLevel(char.Exp, char.Level)) // percent
-		buffer.WriteD(char.Level)                                            // level
+		buffer.WriteD(char.Sp)                                                 // SP
+		buffer.WriteQ(int64(char.Exp))                                         // EXP
+		buffer.WriteF(char.GetPercentFromCurrentLevel(char.Exp, char.Level())) // percent
+		buffer.WriteD(char.Level())                                            // level
 
 		buffer.WriteD(char.Karma)    // karma
 		buffer.WriteD(char.PkKills)  // pk

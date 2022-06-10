@@ -28,7 +28,7 @@ func RequestEnterWorld(clientI interfaces.ReciverAndSender, data []byte) {
 
 	//Если персонажа никогда не заходил в игру, выдадим ему какие-то стартовые предметы
 	if client.CurrentChar.OnlineTime == 0 {
-		logger.Info.Println("Выдача предметов новому персонажу: ", client.CurrentChar.CharName)
+		logger.Info.Println("Выдача предметов новому персонажу: ", client.CurrentChar.PlayerName)
 		client.CurrentChar.Inventory = models.AddItem(models.MyItem{
 			ObjId: idfactory.GetNext(),
 			Item: items.Item{

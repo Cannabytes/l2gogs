@@ -21,8 +21,8 @@ func TradeRequest(data []byte, client interfaces.ReciverAndSender) {
 
 	pkg := serverpackets.TradeSendRequest(target)
 	target.EncryptAndSend(pkg)
-	logger.Info.Println("Отправлен запрос на трейд к", target.GetName())
+	logger.Info.Println("Отправлен запрос на трейд к", target.PlayerName())
 
-	trade.NewRequestTrade(client.GetCurrentChar(), target)
+	trade.NewRequestTrade(client.Player(), target)
 
 }

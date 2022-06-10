@@ -18,7 +18,7 @@ func Handler(client interfaces.ReciverAndSender) {
 		opcode, data, err := client.Receive()
 		//defer kickClient(client)
 		if err != nil {
-			if client.GetCurrentChar().GetObjectId() != 0 {
+			if client.Player().ObjectID() != 0 {
 				gameserver.CharOffline(client)
 			}
 			return
@@ -58,7 +58,7 @@ func Handler(client interfaces.ReciverAndSender) {
 			clientpackets.CharacterCreate(data, client)
 		case 18:
 			clientpackets.CharSelected(data, client)
-			gameserver.AddOnlineChar(client.GetCurrentChar())
+			gameserver.AddOnlineChar(client.Player())
 		case 208:
 			if len(data) >= 2 {
 				switch data[0] {
@@ -115,7 +115,7 @@ func Handler(client interfaces.ReciverAndSender) {
 				broadcast.BroadCastChat(client, say)
 			}
 		case 89:
-			clientpackets.ValidationPosition(data, client.GetCurrentChar())
+			clientpackets.ValidationPosition(data, client.Player())
 			//broadcast.Checkaem(client, pkg)
 		case 31:
 			pkg := clientpackets.Action(data, client)

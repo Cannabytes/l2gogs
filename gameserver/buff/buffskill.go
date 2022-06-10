@@ -64,13 +64,13 @@ func сlearBuffListDB(charId int32) {
 
 // SaveBuff Сохранение баффа в БД, который на игроке
 func SaveBuff(clientI interfaces.ReciverAndSender) {
-	сlearBuffListDB(clientI.(*models.Client).CurrentChar.ObjectId)
+	сlearBuffListDB(clientI.(*models.Client).CurrentChar.ObjectID())
 	MyBuffList := clientI.(*models.Client).CurrentChar.Buff()
 	buffCount := len(MyBuffList)
 	if buffCount == 0 {
 		return
 	}
-	playerId := strconv.Itoa(int(clientI.GetCurrentChar().GetObjectId()))
+	playerId := strconv.Itoa(int(clientI.Player().ObjectID()))
 	var values string
 	for index, buff := range MyBuffList {
 		id := strconv.Itoa(buff.Id)

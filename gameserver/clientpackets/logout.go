@@ -12,16 +12,16 @@ import (
 func Logout(clientI interfaces.ReciverAndSender, data []byte) {
 	client := clientI.(*models.Client)
 
-	log.Println(clientI.GetCurrentChar().GetObjectId())
-	if clientI.GetCurrentChar().GetObjectId() == 0 {
+	log.Println(clientI.Player().ObjectID())
+	if clientI.Player().ObjectID() == 0 {
 		return
 	}
 
 	client.CurrentChar.InGame = false
 	buff.SaveBuff(clientI)
-	client.CurrentChar.Inventory.Save(int(clientI.GetCurrentChar().GetObjectId()))
+	client.CurrentChar.Inventory.Save(int(clientI.Player().ObjectID()))
 
-	clientI.GetCurrentChar().SetStatusOffline()
+	clientI.Player().SetStatusOffline()
 	pkg := serverpackets.LogoutToClient(data, clientI)
 	clientI.EncryptAndSend(pkg)
 	gameserver.CharOffline(clientI)

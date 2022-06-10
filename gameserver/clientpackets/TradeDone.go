@@ -14,26 +14,26 @@ func TradeDone(data []byte, client interfaces.ReciverAndSender) {
 	var packet = packets.NewReader(data)
 	response := packet.ReadInt32() // 1 - пользователь нажал ОК, 0 пользователь отменил трейд
 
-	player2, exchange, ok := trade.FindTrade(client.GetCurrentChar())
+	player2, exchange, ok := trade.FindTrade(client.Player())
 	if !ok {
 		logger.Info.Println("Обменивающихся не найдено")
 		return
 	}
 	if response == 1 {
-		if exchange.Sender.ObjectId == client.GetCurrentChar().GetObjectId() {
+		if exchange.Sender.ObjectId == client.Player().ObjectID() {
 			exchange.Sender.Completed = true
-			logger.Info.Printf("Игрок %s подтвердил сделку\n", client.GetCurrentChar().GetName())
+			logger.Info.Printf("Игрок %s подтвердил сделку\n", client.Player().PlayerName())
 			serverpackets.TradeOtherDone(player2)
 		}
-		if exchange.Recipient.ObjectId == client.GetCurrentChar().GetObjectId() {
+		if exchange.Recipient.ObjectId == client.Player().ObjectID() {
 			exchange.Recipient.Completed = true
-			logger.Info.Printf("Игрок %s подтвердил сделку\n", client.GetCurrentChar().GetName())
-			serverpackets.TradeOtherDone(client.GetCurrentChar())
+			logger.Info.Printf("Игрок %s подтвердил сделку\n", client.Player().PlayerName())
+			serverpackets.TradeOtherDone(client.Player())
 		}
 		if exchange.Recipient.Completed == true && exchange.Sender.Completed == true {
 			logger.Info.Println("Обмен завершен успешно", exchange.Recipient.Completed, exchange.Sender.Completed)
-			serverpackets.TradeOK(client.GetCurrentChar(), player2)
-			tradeUserInfo := trade.TradeAddInventory(client.GetCurrentChar(), player2, exchange)
+			serverpackets.TradeOK(client.Player(), player2)
+			tradeUserInfo := trade.TradeAddInventory(client.Player(), player2, exchange)
 
 			for _, tradeData := range tradeUserInfo {
 				//getItem, _ := tradeData.Player.(*models.Character).Inventory.ExistItemID(tradeData.Item.Id)
@@ -42,14 +42,14 @@ func TradeDone(data []byte, client interfaces.ReciverAndSender) {
 				tradeData.Player.EncryptAndSend(ut1.GetData())
 			}
 
-			if ok = trade.UserClear(client.GetCurrentChar()); !ok {
+			if ok = trade.UserClear(client.Player()); !ok {
 				logger.Info.Println("Трейд не найден")
 				return
 			}
 		}
 	} else if response == 0 {
-		serverpackets.TradeCancel(client.GetCurrentChar(), player2)
-		if ok = trade.UserClear(client.GetCurrentChar()); !ok {
+		serverpackets.TradeCancel(client.Player(), player2)
+		if ok = trade.UserClear(client.Player()); !ok {
 			logger.Info.Println("Трейд не найден")
 			return
 		}

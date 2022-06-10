@@ -12,10 +12,10 @@ func CreatureSay(say *models.Say, character interfaces.CharacterI) []byte {
 	defer packets.Put(buffer)
 
 	buffer.WriteSingleByte(0x4a)
-	buffer.WriteD(character.GetObjectId()) //objId
-	buffer.WriteD(say.Type)                //
+	buffer.WriteD(character.ObjectID()) //objId
+	buffer.WriteD(say.Type)             //
 
-	buffer.WriteS(character.GetName())
+	buffer.WriteS(character.PlayerName())
 
 	buffer.WriteD(-1) // High Five NPCString ID
 	buffer.WriteS(say.Text)

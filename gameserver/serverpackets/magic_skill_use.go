@@ -35,12 +35,12 @@ func NewMagicSkillUse(clientI interfaces.ReciverAndSender, skill models.Skill, c
 
 	/////////////////////////////////////////////////////////////////////////////////
 	buffer.WriteSingleByte(0x48)
-	buffer.WriteD(client.CurrentChar.ObjectId) // activeChar id
-	buffer.WriteD(client.CurrentChar.ObjectId) // targetChar id
-	buffer.WriteD(int32(skill.SkillId))        // skillId
-	buffer.WriteD(int32(skill.Level))          // skillLevel
-	buffer.WriteD(int32(skill.SkillHitTime))   // hitTime
-	buffer.WriteD(int32(skill.ReuseDelay))     // reuseDelay
+	buffer.WriteD(client.CurrentChar.ObjectID()) // activeChar id
+	buffer.WriteD(client.CurrentChar.ObjectID()) // targetChar id
+	buffer.WriteD(int32(skill.SkillId))          // skillId
+	buffer.WriteD(int32(skill.Level))            // skillLevel
+	buffer.WriteD(int32(skill.SkillHitTime))     // hitTime
+	buffer.WriteD(int32(skill.ReuseDelay))       // reuseDelay
 
 	x, y, z := client.CurrentChar.GetXYZ()
 	buffer.WriteD(x)

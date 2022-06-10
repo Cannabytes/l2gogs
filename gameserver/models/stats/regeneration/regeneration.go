@@ -13,22 +13,22 @@ func RenerationHpMpCp(clientI interfaces.ReciverAndSender) {
 
 	//Если хп одинаковое - выходим, потом доделать так же с MP/CP
 
-	if char.CurHp == clientI.GetCurrentChar().GetMaxHP() &&
-		char.CurMp == clientI.GetCurrentChar().GetMaxMP() &&
-		char.CurCp == clientI.GetCurrentChar().GetMaxCP() {
+	if char.CurHp == clientI.Player().MaxHP() &&
+		char.CurMp == clientI.Player().MaxMP() &&
+		char.CurCp == clientI.Player().MaxCP() {
 		return
 	}
 	char.CurHp += char.HpRegen
 	if char.CurHp >= char.MaxHp {
-		char.CurHp = clientI.GetCurrentChar().GetMaxHP()
+		char.CurHp = clientI.Player().MaxHP()
 	}
 	char.CurMp += char.MpRegen
 	if char.CurMp >= char.MaxMp {
-		char.CurMp = clientI.GetCurrentChar().GetMaxMP()
+		char.CurMp = clientI.Player().MaxMP()
 	}
 	char.CurCp += char.CpRegen
 	if char.CurCp >= char.MaxCp {
-		char.CurCp = clientI.GetCurrentChar().GetMaxCP()
+		char.CurCp = clientI.Player().MaxCP()
 	}
 	pkg := serverpackets.StatusUpdate(clientI)
 	clientI.EncryptAndSend(pkg)

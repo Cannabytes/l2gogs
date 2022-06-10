@@ -22,17 +22,17 @@ func UserInfo(client *models.Client) []byte {
 
 	buffer.WriteD(0) // Vehicle
 
-	buffer.WriteD(player.ObjectId) //objId
+	buffer.WriteD(player.ObjectID()) //objId
 
-	buffer.WriteS(player.CharName) //name //TODO
+	buffer.WriteS(player.PlayerName()) //name //TODO
 
 	buffer.WriteD(int32(player.Race)) //race ordinal //TODO
 	buffer.WriteD(player.Sex)         //sex
 	buffer.WriteD(player.BaseClass)   //baseClass
 
-	buffer.WriteD(player.Level)                                                //level //TODO
-	buffer.WriteQ(int64(player.Exp))                                           //exp
-	buffer.WriteF(player.GetPercentFromCurrentLevel(player.Exp, player.Level)) //percent
+	buffer.WriteD(player.Level())                                                //level //TODO
+	buffer.WriteQ(int64(player.Exp))                                             //exp
+	buffer.WriteF(player.GetPercentFromCurrentLevel(player.Exp, player.Level())) //percent
 
 	buffer.WriteD(int32(stat.STR)) //str
 	buffer.WriteD(int32(stat.DEX)) //dex
@@ -41,11 +41,11 @@ func UserInfo(client *models.Client) []byte {
 	buffer.WriteD(int32(stat.WIT)) //wit
 	buffer.WriteD(int32(stat.MEN)) //men
 
-	buffer.WriteD(int32(player.GetMaxHP())) //Max hp //TODO
+	buffer.WriteD(int32(player.MaxHP())) //Max hp //TODO
 
-	buffer.WriteD(int32(player.CurHp))      //hp currnebt
-	buffer.WriteD(int32(player.GetMaxMP())) //max mp
-	buffer.WriteD(int32(player.CurMp))      //mp
+	buffer.WriteD(int32(player.CurHp))   //hp currnebt
+	buffer.WriteD(int32(player.MaxMP())) //max mp
+	buffer.WriteD(int32(player.CurMp))   //mp
 
 	buffer.WriteD(player.Sp) //sp //TODO
 	buffer.WriteD(0)         //currentLoad
@@ -87,9 +87,9 @@ func UserInfo(client *models.Client) []byte {
 	buffer.WriteD(player.PvpKills) //pvp
 	buffer.WriteD(player.Karma)    //karma
 
-	//_modspd := client.GetCurrentChar().GetMaxRunSpeed() * (1. / stat.BaseMoveSpd.Run)
+	//_modspd := client.Player().GetMaxRunSpeed() * (1. / stat.BaseMoveSpd.Run)
 	//logger.Info.Println(_modspd)
-	buffer.WriteD(int32(player.GetMaxRunSpeed()))   //runSpeed
+	buffer.WriteD(int32(player.MaxRunSpeed()))      //runSpeed
 	buffer.WriteD(int32(stat.BaseMoveSpd.Walk))     //walkspeed
 	buffer.WriteD(int32(stat.BaseMoveSpd.SlowSwim)) //swimRunSpeed
 	buffer.WriteD(int32(stat.BaseMoveSpd.FastSwim)) //swimWalkSpeed
@@ -108,13 +108,13 @@ func UserInfo(client *models.Client) []byte {
 	buffer.WriteD(player.HairColor) //hairColor
 	buffer.WriteD(player.Face)      //face
 
-	if player.IsAdmin {
+	if player.IsAdmin() {
 		buffer.WriteD(1) //IsGM?
 	} else {
 		buffer.WriteD(0) //IsPlayer
 	}
 
-	buffer.WriteS(player.Title) //title
+	buffer.WriteS(player.Title()) //title
 
 	buffer.WriteD(player.ClanId) //clanId
 	buffer.WriteD(0)             //clancrestId
@@ -149,8 +149,8 @@ func UserInfo(client *models.Client) []byte {
 	buffer.WriteD(player.ClassId) //	classId
 	buffer.WriteD(0)              // special effects? circles around player...
 
-	buffer.WriteD(int32(player.GetMaxCP())) //MaxCP
-	buffer.WriteD(int32(player.CurCp))      //CurrentCp
+	buffer.WriteD(int32(player.MaxCP())) //MaxCP
+	buffer.WriteD(int32(player.CurCp))   //CurrentCp
 
 	buffer.WriteSingleByte(0) //mounted air
 	buffer.WriteSingleByte(0) //team Id
@@ -165,7 +165,7 @@ func UserInfo(client *models.Client) []byte {
 	buffer.WriteD(0)
 	buffer.WriteD(0)
 
-	if player.IsAdmin {
+	if player.IsAdmin() {
 		buffer.WriteD(0x1a9112) //color name
 	} else {
 		var namecolor int32 = 0xffffff
@@ -180,7 +180,7 @@ func UserInfo(client *models.Client) []byte {
 	buffer.WriteD(0) // changes the text above CP on Status Window
 	buffer.WriteD(0) // plegue type
 
-	if player.IsAdmin {
+	if player.IsAdmin() {
 		buffer.WriteD(0x6e071b) //titleColor
 	} else {
 		var titlecolor int32 = 0xffffff

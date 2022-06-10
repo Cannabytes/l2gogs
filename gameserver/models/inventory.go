@@ -130,7 +130,7 @@ func (c Character) LoadingVisibleInventory() [26]MyItem {
 	}
 	defer dbConn.Release()
 
-	rows, err := dbConn.Query(context.Background(), "SELECT object_id, item, loc_data, enchant_level FROM items WHERE owner_id= $1 AND loc= $2", c.GetObjectId(), PaperdollLoc)
+	rows, err := dbConn.Query(context.Background(), "SELECT object_id, item, loc_data, enchant_level FROM items WHERE owner_id= $1 AND loc= $2", c.ObjectID(), PaperdollLoc)
 	if err != nil {
 		logger.Error.Panicln(err)
 	}
@@ -818,7 +818,7 @@ func AddItem(selectedItem MyItem, character *Character) Inventory {
 	}
 	character.Inventory.Items = append(character.Inventory.Items, &nitem)
 
-	_, err = dbConn.Exec(context.Background(), `INSERT INTO "items" ("owner_id", "object_id", "item", "count", "enchant_level", "loc", "loc_data", "time_of_use", "custom_type1", "custom_type2", "mana_left", "time", "agathion_energy") VALUES ($1, $2, $3, $4, 0, 'INVENTORY', 0, 0, 0, 0, '-1', 0, 0)`, character.ObjectId, selectedItem.ObjId, selectedItem.Item.Id, selectedItem.Count)
+	_, err = dbConn.Exec(context.Background(), `INSERT INTO "items" ("owner_id", "object_id", "item", "count", "enchant_level", "loc", "loc_data", "time_of_use", "custom_type1", "custom_type2", "mana_left", "time", "agathion_energy") VALUES ($1, $2, $3, $4, 0, 'INVENTORY', 0, 0, 0, 0, '-1', 0, 0)`, character.ObjectID(), selectedItem.ObjId, selectedItem.Item.Id, selectedItem.Count)
 	if err != nil {
 		logger.Error.Panicln(err)
 	}

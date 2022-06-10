@@ -17,11 +17,11 @@ func NewTest(clientI interfaces.ReciverAndSender) []byte {
 	defer packets.Put(buffer)
 
 	buffer.WriteSingleByte(0x54)
-	buffer.WriteD(client.CurrentChar.ObjectId)
+	buffer.WriteD(client.CurrentChar.ObjectID())
 	buffer.WriteD(1216)
 	buffer.WriteD(1)
 	buffer.WriteD(1)
-	buffer.WriteD(client.CurrentChar.ObjectId)
+	buffer.WriteD(client.CurrentChar.ObjectID())
 
 	return buffer.Bytes()
 }

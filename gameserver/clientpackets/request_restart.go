@@ -13,12 +13,14 @@ func RequestRestart(data []byte, clientI interfaces.ReciverAndSender) {
 	if !ok {
 		return
 	}
-	client.GetCurrentChar().SetStatusOffline()
+	client.Player().SetStatusOffline()
 
 	client.CurrentChar.InGame = false
 	buff.SaveBuff(client)
 	client.SaveUser()
-	client.CurrentChar.Inventory.Save(int(clientI.GetCurrentChar().GetObjectId()))
+	client.CurrentChar.Inventory.Save(int(clientI.Player().ObjectID()))
+
+	client.Player().ObjectID()
 
 	//todo need save in db
 
