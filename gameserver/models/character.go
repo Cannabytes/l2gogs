@@ -11,6 +11,7 @@ import (
 	"l2gogameserver/gameserver/models/race"
 	"l2gogameserver/gameserver/skills"
 	"l2gogameserver/utils"
+	"math"
 	"net"
 
 	"sync"
@@ -164,6 +165,18 @@ type (
 		UpdateType int16
 	}
 )
+
+// TargetUpDistance Расстояния от персонажа до цели (объекта таргета)
+// TODO: необходимо проверить функцию на работоспособность
+// TODO: и добавить помимо поиска объектов среди NPC, так же и объекты предметов.
+func (c *Character) TargetUpDistance() float64 {
+	_, x, y, _, err := GetNpcObject(c.Target)
+	if err != nil {
+		return 0
+	}
+	distance := math.Pow(float64(x-c.GetX()), 2) + math.Pow(float64(y-c.GetY()), 2)
+	return math.Sqrt(distance)
+}
 
 // HP Возвращает HP персонажа
 func (c *Character) HP() float64 {
@@ -478,7 +491,6 @@ func (c *Character) SetAdmin(privilege bool) {
 func (c *Character) CounterTimeInGamePlayer() {
 	for {
 		if c.InGame == false {
-			logger.Info.Println("Счетчик времени в игре остановлен")
 			return
 		}
 		c.SetOnlineTimeIncrement(1)

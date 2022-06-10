@@ -30,6 +30,7 @@ type Positionable interface {
 	GetZ() int32
 	GetXYZ() (int32, int32, int32)
 	GetCurrentRegion() WorldRegioner
+	TargetUpDistance() float64
 	//setLocation(Location)
 	//setXYZByLoc(ILocational)
 }
