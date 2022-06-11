@@ -1,5 +1,1 @@
 package skills
-
-func Speed() {
-
-}

@@ -113,7 +113,6 @@ func BuffTimeOut(ch *models.Character) {
 		}
 		if isNeedComparisonBuff {
 			ch.EncryptAndSend(serverpackets.AbnormalStatusUpdate(ch.Buff()))
-			ch.StatsRefresh()
 			ch.EncryptAndSend(serverpackets.UserInfo(ch.Conn))
 		}
 		time.Sleep(1 * time.Second)

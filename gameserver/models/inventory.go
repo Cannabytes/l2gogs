@@ -126,6 +126,24 @@ func (c Character) LoadingVisibleInventory() [26]MyItem {
 
 	dbConn, err := db.GetConn()
 	if err != nil {
+		//TODO: почему-то, нужно будет проанализировать
+		//БД запущена, всё нормально. Однако зажал Enter после авторизации, чтоб сразу перейти к загрузке.
+		/*
+			ERROR: 00:02:48 inventory.go:129: failed to connect to `host=localhost user=postgres database=postgres`: dial error (dial tcp [::1]:5432: connectex:
+			No connection could be made because the target machine actively refused it.)
+			panic: failed to connect to `host=localhost user=postgres database=postgres`: dial error (dial tcp [::1]:5432: connectex: No connection could be made
+			 because the target machine actively refused it.)
+
+
+			goroutine 36 [running]:
+			log.(*Logger).Panicln(0xffffd7200002c224?, {0xc0034070a0?, 0x0?, 0x0?})
+			        C:/Program Files/Go/src/log/log.go:262 +0x69
+			l2gogameserver/gameserver/models.Character.LoadingVisibleInventory({{0xc004fb065c, 0x4}, 0x9613, {0xc004fb0660, 0xa}, 0x4b, 0x409b200000000000, 0x3ff
+			0000000000000, 0x4089400000000000, 0x3ff0000000000000, ...})
+			        C:/go/l2gogameserver/gameserver/models/inventory.go:129 +0xa5
+			l2gogameserver/gameserver/serverpackets.CharSelectionInfo({0xc75a08?, 0xc00010e1b0?})
+
+		*/
 		logger.Error.Panicln(err)
 	}
 	defer dbConn.Release()
@@ -650,7 +668,7 @@ func setPaperdollItem(slot uint8, selectedItem *MyItem, character *Character) (*
 	//Надеваем на слот
 	character.ItemPutOn(selectedItem, slot)
 	// добавить бонусы предмета персонажу
-	character.AddBonusStat(selectedItem.BonusStats)
+	//character.AddBonusStat(selectedItem.BonusStats)
 
 	logger.Info.Println(ok, oldItem.Name)
 	if ok { //Если слот не свободем, снимаем то что там

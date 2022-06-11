@@ -9,7 +9,6 @@ import (
 	"l2gogameserver/gameserver/interfaces"
 	"l2gogameserver/gameserver/models/items"
 	"l2gogameserver/gameserver/models/race"
-	"l2gogameserver/gameserver/skills"
 	"l2gogameserver/utils"
 	"math"
 	"net"
@@ -71,8 +70,8 @@ type (
 		// Skills todo: проверить слайс или мапа лучше для скилов
 		Skills                  []Skill
 		SkillsItem              []Skill    //Скиллы, которые дает предметы, которые экиперованы на персонаже
-		SkillsItemBonus         SkillBonus //Бонус предметов, которые добавляет статы, при экипировании
-		SkillsBuffBonus         SkillBonus //Бонус предметов, которые добавляет статы, при  баффе
+		ItemBonus               SkillBonus //Бонус предметов, которые добавляет статы, при экипировании
+		BuffBonus               SkillBonus //Бонус предметов, которые добавляет статы, при  баффе
 		IsCastingNow            bool
 		SkillQueue              chan SkillHolder
 		CurrentSkill            *SkillHolder // todo А может быть без * попробовать?
@@ -94,10 +93,11 @@ type (
 		Setting                 CharSetting
 	}
 	SkillBonus struct {
-		MaxHP        float64
-		MaxMP        float64
-		MaxCP        float64
-		Speed        float64 //Speed Run
+		MaxHP float64
+		MaxMP float64
+		MaxCP float64
+		Speed float64 //Speed Run
+		//PDef         BasePDef
 		PDef         float64
 		MDef         float64
 		PAtk         float64
@@ -306,7 +306,7 @@ func (c *Character) SetLevel(level int) {
 // ResetSkillItemBonus Сбрасывает все бонусы скиллов предмета
 func (c *Character) ResetSkillItemBonus() {
 	c.SkillsItem = nil
-	c.SkillsItemBonus = SkillBonus{
+	c.ItemBonus = SkillBonus{
 		MaxHP:        0,
 		MaxMP:        0,
 		MaxCP:        0,
@@ -334,13 +334,20 @@ func (c *Character) SetTitle(title string) {
 // ResetSkillBuffBonus Сбрасывает все бонусы скиллов баффа
 // Обязательно нужно перечислить все статы, которые необходимо сбросить
 func (c *Character) resetSkillBuffBonus() {
-	c.SkillsBuffBonus = SkillBonus{
-		MaxHP: 0,
-		MaxMP: 0,
-		MaxCP: 0,
-		Speed: 0,
-		PDef:  0,
+	c.BuffBonus = SkillBonus{
+		MaxHP:        0,
+		MaxMP:        0,
+		MaxCP:        0,
+		Speed:        0,
+		PDef:         0,
+		MDef:         0,
+		PAtk:         0,
+		MAtk:         0,
+		AtkSpd:       0,
+		MAtkSpd:      0,
+		CriticalRate: 0,
 	}
+
 }
 
 func GetNewCharacterModel() *Character {
@@ -433,11 +440,11 @@ func (c *Character) Load() {
 
 	c.LoadCharactersMacros()
 
-	for _, v := range &c.Paperdoll {
-		if v.ObjId != 0 {
-			c.AddBonusStat(v.BonusStats)
-		}
-	}
+	//for _, v := range &c.Paperdoll {
+	//	if v.ObjId != 0 {
+	//		c.AddBonusStat(v.BonusStats)
+	//	}
+	//}
 
 	//HP/MP/CP/REGEN соответствующий уровню
 	LvlUpgain := AllStats[int(c.ClassID())].LvlUpgainData[c.Level()]
@@ -449,7 +456,7 @@ func (c *Character) Load() {
 	c.CpRegen = LvlUpgain.CpRegen
 
 	c.ResetHpMpStatLevel()
-	c.StatsRefresh()
+	c.SetRegenStatLevel()
 
 	reg := GetRegion(c.Coordinates.X, c.Coordinates.Y, c.Coordinates.Z)
 	c.CharInfoTo = make(chan []int32, 2)
@@ -471,7 +478,10 @@ func (c *Character) ResetHpMpStatLevel() {
 	c.SetHP(LvlUpgain.Hp)
 	c.SetMP(LvlUpgain.Mp)
 	c.SetCP(LvlUpgain.Cp)
-	c.CurHp = LvlUpgain.Cp
+}
+
+func (c *Character) SetRegenStatLevel() {
+	LvlUpgain := AllStats[int(c.ClassID())].LvlUpgainData[c.Level()]
 	c.HpRegen = LvlUpgain.HpRegen
 	c.MpRegen = LvlUpgain.MpRegen
 	c.CpRegen = LvlUpgain.CpRegen
@@ -533,9 +543,9 @@ func (c *Character) IsCursedWeaponEquipped() bool {
 	return c.CursedWeaponEquippedId != 0
 }
 
-func (c *Character) AddBonusStat(s []items.ItemBonusStat) {
-	c.BonusStats = append(c.BonusStats, s...)
-}
+//func (c *Character) AddBonusStat(s []items.ItemBonusStat) {
+//	c.BonusStats = append(c.BonusStats, s...)
+//}
 
 func (c *Character) RemoveBonusStat(s []items.ItemBonusStat) {
 	news := make([]items.ItemBonusStat, 0, len(c.BonusStats))
@@ -561,6 +571,7 @@ func (c *Character) AddBonusSkill(s Skill) {
 // SkillItemListRefresh Получение списка скиллов надетых предметов
 // Возвращается true если скиллы были изменены
 func (c *Character) SkillItemListRefresh() bool {
+	c.resetBonusStatCals()
 	c.ResetSkillItemBonus()
 	for _, selectedItem := range c.Paperdoll {
 		if selectedItem.ObjId != 0 {
@@ -568,7 +579,6 @@ func (c *Character) SkillItemListRefresh() bool {
 			skill, ok := GetSkillName(itemSkill)
 			if ok {
 				c.AddBonusSkill(skill)
-				c.bonusStatCalsSkills(skill)
 			}
 		}
 	}
@@ -576,110 +586,6 @@ func (c *Character) SkillItemListRefresh() bool {
 		return true
 	}
 	return false
-}
-
-// Добавление бонусных статов от скиллов, которые надеты на персонажа
-func (c *Character) bonusStatCalsSkills(skill Skill) {
-	effect := skill.Effect
-	if effect.PMaxHp != nil {
-		c.SkillsItemBonus.MaxHP = float64(skills.CapMath(c.MaxHP(), skill.Effect.PMaxHp.Val, effect.PMaxHp.Cap))
-	}
-	if effect.PMaxMp != nil {
-		c.SkillsItemBonus.MaxMP = float64(skills.CapMath(c.MaxMP(), skill.Effect.PMaxMp.Val, effect.PMaxMp.Cap))
-	}
-	if effect.PSpeed != nil {
-		c.SkillsItemBonus.Speed = float64(skills.CapMath(c.Stats.BaseMoveSpd.Run, skill.Effect.PSpeed.Val, effect.PSpeed.Cap))
-	}
-}
-
-// StatsRefresh Обновление счетчика всех статов персонажа
-// По задумке творца, это необходимо использовать всякий раз при новом баффе, при надевании шмотки/оружия/бижи если имеются эффекты у него.
-func (c *Character) StatsRefresh() {
-	c.resetBonusStatCals()
-	c.getRefreshStats()
-	c.bonusStatCalsBuff()
-}
-
-// Подсчет статов от бафа
-func (c *Character) bonusStatCalsBuff() {
-	//сброс всех значений от баффа, для перерасчета
-	c.resetSkillBuffBonus()
-	for _, skillbuff := range c.Buff() {
-		geteffect, _ := GetSkillDataInfo(skillbuff.Id, skillbuff.Level)
-		c.SkillsBuffBonus = c.setStatPlayer(geteffect.Effect, c.SkillsBuffBonus)
-	}
-}
-
-func (c *Character) setStatPlayer(effect Effect, sb SkillBonus) SkillBonus {
-
-	if effect.PMaxHp != nil {
-		if effect.PMaxHp.Cap == "per" {
-			sb.MaxHP += c.HP() * effect.PMaxHp.Val / 100
-		}
-	}
-	if effect.PMaxMp != nil {
-		if effect.PMaxMp.Cap == "per" {
-			sb.MaxMP += c.MaxMP() * effect.PMaxMp.Val / 100
-		}
-	}
-	if effect.PSpeed != nil {
-		if effect.PSpeed.Cap == "diff" {
-			sb.Speed += effect.PSpeed.Val
-		}
-	}
-
-	if effect.PPhysicalDefence != nil {
-		if effect.PPhysicalDefence.Cap == "per" {
-			sb.PDef += float64(c.PDef() * int(effect.PPhysicalDefence.Val) / 100)
-		}
-	}
-
-	if effect.PMagicalDefence != nil {
-		if effect.PMagicalDefence.Cap == "per" {
-			sb.MDef += float64(c.MDef() * int(effect.PMagicalDefence.Val) / 100)
-		}
-	}
-
-	if effect.PPhysicalAttack != nil {
-		if effect.PPhysicalAttack.Cap == "per" {
-			sb.PAtk += float64(c.PAtk() * int(effect.PPhysicalAttack.Val) / 100)
-		}
-	}
-
-	if effect.PMagicalAttack != nil {
-		if effect.PMagicalAttack.Cap == "per" {
-			sb.MAtk += float64(c.MAtk() * int(effect.PMagicalAttack.Val) / 100)
-		}
-	}
-
-	if effect.PAttackSpeed != nil {
-		if effect.PAttackSpeed.Cap == "per" {
-			sb.AtkSpd += float64(c.AttackSpeed() * int(effect.PAttackSpeed.Val) / 100)
-		}
-	}
-
-	if effect.PCriticalRate != nil {
-		if effect.PCriticalRate.Cap == "per" {
-			sb.CriticalRate += float64(c.CriticalRate() * int(effect.PCriticalRate.Val) / 100)
-		}
-	}
-
-	return sb
-}
-
-// GetRefreshStats Обновление статов персонажа
-// Берется статы из оружия, брони.
-// TODO: Скиллы и бижа не учитывается
-func (c *Character) getRefreshStats() {
-	c.resetBonusStatCals()
-	c.BonusStats = nil
-	for _, v := range &c.Paperdoll {
-		if v.ObjId != 0 {
-			c.AddBonusStat(v.BonusStats)
-			c.BonusStatCals(v)
-		}
-	}
-
 }
 
 // BonusStatCals Сложение всех статов от предметов надетых на персонаже
@@ -732,6 +638,7 @@ func (c *Character) BonusStatCals(item MyItem) {
 			c.Stats.BasePAtkSpd += int(v.Val)
 		}
 		if v.Type == "mp_bonus" {
+			logger.Warning.Println("mp_bonus", item.Name, v.Val)
 			c.SetAddMP(v.Val)
 		}
 	}
@@ -740,6 +647,10 @@ func (c *Character) BonusStatCals(item MyItem) {
 
 func (c *Character) resetBonusStatCals() {
 	c.Stats = AllStats[int(c.ClassID())].StaticData
+	LvlUpgain := AllStats[int(c.ClassID())].LvlUpgainData[c.Level()]
+	c.SetHP(LvlUpgain.Hp)
+	c.SetMP(LvlUpgain.Mp)
+	c.SetCP(LvlUpgain.Cp)
 }
 
 func (c *Character) GetInventoryLimit() int16 {
@@ -749,34 +660,139 @@ func (c *Character) GetInventoryLimit() int16 {
 	return 80
 }
 
+// RefreshStats Обновляет статы от предметов и от скиллов
+func (c *Character) RefreshStats() {
+	//Сбрасываем старые значения
+	c.BuffBonus = SkillBonus{}
+	c.ItemBonus = SkillBonus{}
+
+	for _, item := range c.Paperdoll {
+		if item.Id == 0 {
+			continue
+		}
+		logger.Warning.Println(item.Id, item.Item.Name, item.LocData)
+	}
+
+	for _, item := range c.Paperdoll {
+		if item.Id == 0 {
+			continue
+		}
+		for _, bonus := range item.BonusStats {
+			if bonus.Type == "mp_bonus" {
+				c.ItemBonus.MaxMP += bonus.Val
+			}
+			if bonus.Type == "physical_damage" {
+				c.ItemBonus.PAtk += bonus.Val
+			}
+			if bonus.Type == "magical_defense" {
+				c.ItemBonus.MDef += bonus.Val
+			}
+			if bonus.Type == "physical_defense" {
+				c.ItemBonus.PDef += bonus.Val
+				/*switch uint8(item.LocData) {
+				case PAPERDOLL_HEAD:
+					c.ItemBonus.PDef.Head += bonus.Val
+				case PAPERDOLL_CHEST:
+					c.ItemBonus.PDef.Chest += bonus.Val
+				case PAPERDOLL_LEGS:
+					c.ItemBonus.PDef.Legs += bonus.Val
+				case PAPERDOLL_GLOVES:
+					logger.Info.Println(bonus.Val)
+					c.ItemBonus.PDef.Gloves += bonus.Val
+					logger.Info.Println(c.ItemBonus.PDef.Gloves, c.PDef())
+
+				case PAPERDOLL_FEET:
+					c.ItemBonus.PDef.Feet += bonus.Val
+				case PAPERDOLL_UNDER:
+					c.ItemBonus.PDef.Underwear += bonus.Val
+				case PAPERDOLL_CLOAK:
+					c.ItemBonus.PDef.Cloak += bonus.Val
+				}*/
+			}
+			if bonus.Type == "magical_damage" {
+				c.ItemBonus.MAtk += bonus.Val
+			}
+			if bonus.Type == "critical" {
+				c.ItemBonus.CriticalRate += bonus.Val
+			}
+			if bonus.Type == "attack_speed" {
+				c.ItemBonus.AtkSpd += bonus.Val
+			}
+
+		}
+	}
+
+	logger.Info.Println(c.PDef())
+
+	for _, item := range c.Paperdoll {
+		if item.ItemSkill != "none" {
+			skill, _ := GetSkillName(item.ItemSkill)
+			c.skillBonusStatAdd(skill)
+		}
+	}
+	logger.Info.Println(c.MaxMP())
+
+	//Бафф рефреш
+	for _, buff := range c.Buff() {
+		skill, _ := GetSkillDataInfo(buff.Id, buff.Level)
+		c.skillBonusStatAdd(*skill)
+	}
+
+	logger.Info.Println(c.MaxMP())
+}
+
+func (c *Character) skillBonusStatAdd(skill Skill) {
+	if skill.Effect.MaxMp != nil {
+		if skill.Effect.MaxMp.Cap == "diff" { //Если добавлять
+			c.BuffBonus.MaxMP += skill.Effect.MaxMp.Val
+		}
+		if skill.Effect.MaxMp.Cap == "per" { //Если умножить
+			logger.Warning.Println("+", skill.Effect.MaxMp.Val, "% MP")
+			c.BuffBonus.MaxMP += c.MaxMP() * skill.Effect.MaxMp.Val / 100
+		}
+	}
+	if skill.Effect.MaxHp != nil {
+		logger.Warning.Println("maxhp", skill.Effect.MaxHp)
+		if skill.Effect.MaxHp.Cap == "diff" { //Если добавлять
+			c.BuffBonus.MaxHP += skill.Effect.MaxHp.Val
+		}
+		if skill.Effect.MaxHp.Cap == "per" { //Если умножить
+			c.BuffBonus.MaxHP += c.MaxHP() * skill.Effect.MaxHp.Val / 100
+		}
+	}
+}
+
 // PDef Pdef всего
 func (c *Character) PDef() int {
-	return data.CalcFloat64(c.SkillsBuffBonus.PDef, c.Stats.BasePDef.Gloves, c.Stats.BasePDef.Legs, c.Stats.BasePDef.Underwear, c.Stats.BasePDef.Feet, c.Stats.BasePDef.Chest, c.Stats.BasePDef.Head)
+	//buffItem := data.CalcFloat64(c.BuffBonus.PDef.Gloves, c.BuffBonus.PDef.Legs, c.BuffBonus.PDef.Underwear, c.BuffBonus.PDef.Feet, c.BuffBonus.PDef.Chest, c.BuffBonus.PDef.Head)
+	//bonusItem := data.CalcFloat64(c.ItemBonus.PDef.Gloves, c.ItemBonus.PDef.Legs, c.ItemBonus.PDef.Underwear, c.ItemBonus.PDef.Feet, c.ItemBonus.PDef.Chest, c.ItemBonus.PDef.Head)
+	statsItem := data.CalcFloat64(c.Stats.BasePDef.Legs, c.Stats.BasePDef.Underwear, c.Stats.BasePDef.Feet, c.Stats.BasePDef.Chest, c.Stats.BasePDef.Head)
+	return int(c.BuffBonus.PDef+c.ItemBonus.PDef) + statsItem
 }
 
 func (c *Character) MDef() int {
-	return data.CalcFloat64(c.SkillsBuffBonus.MDef, c.Stats.BaseMDef.Rfinger, c.Stats.BaseMDef.Lfinger, c.Stats.BaseMDef.Rear, c.Stats.BaseMDef.Lear, c.Stats.BaseMDef.Neck)
+	return data.CalcFloat64(c.BuffBonus.MDef, c.Stats.BaseMDef.Rfinger, c.Stats.BaseMDef.Lfinger, c.Stats.BaseMDef.Rear, c.Stats.BaseMDef.Lear, c.Stats.BaseMDef.Neck)
 }
 
 func (c *Character) MAtk() int {
-	return data.CalcFloat64(c.SkillsBuffBonus.MAtk, float64(c.Stats.BaseMAtk))
+	return data.CalcFloat64(c.BuffBonus.MAtk, float64(c.Stats.BaseMAtk))
 }
 
 func (c *Character) PAtk() int {
-	return data.CalcFloat64(c.SkillsBuffBonus.PAtk, float64(c.Stats.BasePAtk))
+	return data.CalcFloat64(c.BuffBonus.PAtk, float64(c.Stats.BasePAtk))
 }
 
 func (c *Character) AttackSpeed() int {
-	return data.CalcFloat64(c.SkillsBuffBonus.AtkSpd, float64(c.Stats.BasePAtkSpd))
+	return data.CalcFloat64(c.BuffBonus.AtkSpd, float64(c.Stats.BasePAtkSpd))
 }
 
 func (c *Character) CriticalRate() int {
-	return data.CalcFloat64(c.SkillsBuffBonus.CriticalRate, float64(c.Stats.BaseCritRate))
+	return data.CalcFloat64(c.BuffBonus.CriticalRate, float64(c.Stats.BaseCritRate))
 }
 
 //TODO: Необходимо узнать информацию о суммировании маг.спида.
 func (c *Character) MAttackSpeed() int {
-	return data.CalcFloat64(c.SkillsBuffBonus.MAtkSpd)
+	return data.CalcFloat64(c.BuffBonus.MAtkSpd)
 }
 
 func (c *Character) setWorldRegion(newRegion interfaces.WorldRegioner) {
@@ -866,20 +882,20 @@ func (c *Character) ExistItemInInventory(objectItemId int32) *MyItem {
 
 //Возвращает общее кол-во ХП (дающее и с скиллы, с предметы и баффы)
 func (c *Character) MaxHP() float64 {
-	return c.HP() + c.SkillsItemBonus.MaxHP + c.SkillsBuffBonus.MaxHP
+	return c.HP() + c.ItemBonus.MaxHP + c.BuffBonus.MaxHP
 }
 
 func (c *Character) MaxMP() float64 {
-	return c.MP() + c.SkillsItemBonus.MaxMP + c.SkillsBuffBonus.MaxMP
+	return c.MP() + c.ItemBonus.MaxMP + c.BuffBonus.MaxMP
 }
 
 func (c *Character) MaxCP() float64 {
-	return c.CP() + c.SkillsItemBonus.MaxCP + c.SkillsBuffBonus.MaxCP
+	return c.CP() + c.ItemBonus.MaxCP + c.BuffBonus.MaxCP
 }
 
 // GetMaxRunSpeed Возвращает скорость бега персонажа учитывая все баффы и .тд.
 func (c *Character) MaxRunSpeed() float64 {
-	return c.Stats.BaseMoveSpd.Run + c.SkillsItemBonus.Speed + c.SkillsBuffBonus.Speed
+	return c.Stats.BaseMoveSpd.Run + c.ItemBonus.Speed + c.BuffBonus.Speed
 }
 
 // Buff Список баффа

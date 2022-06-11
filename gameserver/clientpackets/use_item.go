@@ -118,7 +118,7 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 		if itemNeedSlot == 255 {
 			logger.Error.Panicln("Ошибка, не найден слот предмета")
 		}
-
+		logger.Info.Println(itemNeedSlot, "itemNeedSlot")
 		//Поиск занятого слота
 		busySlotItem, ok := client.CurrentChar.GetSlotItem(itemNeedSlot)
 		if ok { //Опусташаем слот перед надеванием
@@ -126,14 +126,18 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 			clientI.EncryptAndSend(serverpackets.InventoryUpdate(busySlotItem, models.UpdateTypeModify))
 		}
 		//Надеваем шмот в пустой слот
+		logger.Info.Println(selectedItem.LocData, itemNeedSlot)
 		client.CurrentChar.ItemPutOn(selectedItem, itemNeedSlot)
+		logger.Info.Println(selectedItem.LocData, itemNeedSlot)
+
 		clientI.EncryptAndSend(serverpackets.InventoryUpdate(selectedItem, models.UpdateTypeModify))
 	}
-	client.CurrentChar.Paperdoll = client.CurrentChar.RestoreVisibleInventory()
-	client.CurrentChar.StatsRefresh()
+
+	client.CurrentChar.Paperdoll[selectedItem.LocData] = *selectedItem
 
 	//Проверка скиллов предмета
 	client.CurrentChar.SkillItemListRefresh()
+
 	clientI.EncryptAndSend(serverpackets.SkillList(client))
 
 	clientI.EncryptAndSend(serverpackets.UserInfo(client))

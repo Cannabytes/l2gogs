@@ -8,6 +8,7 @@ import (
 
 func UserInfo(client *models.Client) []byte {
 	player := client.CurrentChar
+	player.RefreshStats()
 	stat := player.Stats
 
 	buffer := packets.Get()

@@ -96,7 +96,6 @@ func BypassToServer(data []byte, clientI interfaces.ReciverAndSender) {
 
 	} else if bypassInfo[0] == "_bbsbuff" {
 		buffAnalysis(clientI, bypassInfo)
-		client.CurrentChar.StatsRefresh()
 		clientI.EncryptAndSend(serverpackets.UserInfo(client))
 	}
 }
