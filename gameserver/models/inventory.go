@@ -728,9 +728,7 @@ func (c *Character) ItemTakeOff(selectedItem *MyItem, slot int32) {
 }
 
 func (c *Character) GetFirstEmptySlot() int32 {
-	limit := int32(80) // todo дефолтно 80 , но может быть больше
-	//todo:(c)logan22, может быть больше и во время игры меняться,
-	//следовательно лучше вывести в отдельную структуру с дополнительными параметры персонажа
+	limit := int32(80)
 	myItems := c.Inventory.Items
 	for i := int32(0); i < limit; i++ {
 		flag := false
