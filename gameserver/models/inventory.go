@@ -59,7 +59,7 @@ type MyItem struct {
 	items.Item
 	ObjId               int32
 	Enchant             int
-	LocData             int32 // ID слота, который надет в инвентаре
+	LocData             int32 // ID слота, который занят в инвентаре
 	Count               int64
 	Loc                 string
 	Time                int
@@ -434,6 +434,7 @@ func unEquipAndRecord(selectedItem *MyItem, character *Character) (*MyItem, bool
 	return nil, false
 }
 
+// SlotItemInfo Возвращает ID позиции надетого предмета
 func (c Character) SlotItemInfo(selectedItem *MyItem) uint8 {
 	paperdoll := c.Paperdoll
 	switch selectedItem.SlotBitType {
@@ -525,7 +526,7 @@ func (c Character) SlotItemInfo(selectedItem *MyItem) uint8 {
 		//return PAPERDOLL_GLOVES
 		//return PAPERDOLL_CHEST
 	default:
-		logger.Error.Panicln("Не определен Slot для itemId: " + strconv.Itoa(selectedItem.Id))
+		logger.Error.Println("Не определен Slot для itemId: "+strconv.Itoa(selectedItem.Id), "вероятно это не относится к шмоту")
 	}
 	return 255
 }
@@ -685,12 +686,26 @@ func setPaperdollItem(slot uint8, selectedItem *MyItem, character *Character) (*
 	//character.Inventory.Items[keyCurrentItem] = selectedItem
 }
 
-// GetSlotItem находим предмет, который стоял на нужном слоте раннее
-func (c Character) GetSlotItem(slot uint8) (*MyItem, bool) {
+// GetSlotItem находим предмет, который стоит на N слоте
+func (c *Character) GetSlotItem(slotLocID uint8) (*MyItem, bool) {
 	for _, myItem := range c.Inventory.Items {
-		if myItem.LocData == int32(slot) {
-			//&& myItem.Loc == PaperdollLoc
+		logger.Info.Println(myItem.LocData, myItem.Name)
+		if myItem.LocData == int32(slotLocID) {
 			return myItem, true
+		}
+	}
+	return &MyItem{}, false
+}
+
+// EmptyPaperdollSlot Занят ли слот экипировки
+func (c *Character) EmptyPaperdollSlot(checkSlot uint8) (*MyItem, bool) {
+	for _, slot := range GetPaperdollOrder() {
+		if slot == checkSlot {
+			for _, myItem := range c.Inventory.Items {
+				if uint8(myItem.LocData) == checkSlot {
+					return myItem, true
+				}
+			}
 		}
 	}
 	return &MyItem{}, false
@@ -704,8 +719,12 @@ func (c *Character) ItemPutOn(selectedItem *MyItem, slot uint8) {
 
 // ItemTakeOff Снять предмет
 func (c *Character) ItemTakeOff(selectedItem *MyItem, slot int32) {
+	logger.Info.Println("Снимается вещь: ", selectedItem.Name)
 	selectedItem.Loc = InventoryLoc
 	selectedItem.LocData = slot
+	c.Paperdoll[c.SlotItemInfo(selectedItem)] = MyItem{}
+	logger.Info.Println(c.SlotItemInfo(selectedItem))
+	//c.ShowItemsEquipped()
 }
 
 func (c *Character) GetFirstEmptySlot() int32 {

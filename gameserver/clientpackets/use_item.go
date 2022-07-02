@@ -44,7 +44,7 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 
 	//Сюда попадают предметы при двойном клике, которые не являются надеваемыми, к примеру адена, свитки, ресурсы
 	if selectedItem.ItemType == items.Other || selectedItem.ItemType == items.Money || selectedItem.ItemType == items.Quest {
-
+		logger.Warning.Printf("Предмет %s id %d", selectedItem.Name, selectedItem.Id)
 		return
 	}
 
@@ -112,32 +112,31 @@ func UseItem(clientI interfaces.ReciverAndSender, data []byte) {
 		client.CurrentChar.ItemTakeOff(selectedItem, client.CurrentChar.GetFirstEmptySlot())
 		clientI.EncryptAndSend(serverpackets.InventoryUpdate(selectedItem, models.UpdateTypeModify))
 	} else {
-		//Если предмет не надет на персонажа, и персонаж кликнул по нему
+		//Когда предмет не надет на персонаже, и персонаж кликнул надеть предмет
 		//Сначала проверим, свободный ли слот, туда куда наденется шмот
-		itemNeedSlot := client.CurrentChar.SlotItemInfo(selectedItem)
-		if itemNeedSlot == 255 {
+		slotBitType := client.CurrentChar.SlotItemInfo(selectedItem)
+		if slotBitType == 255 {
 			logger.Error.Panicln("Ошибка, не найден слот предмета")
 		}
-		logger.Info.Println(itemNeedSlot, "itemNeedSlot")
 		//Поиск занятого слота
-		busySlotItem, ok := client.CurrentChar.GetSlotItem(itemNeedSlot)
+		busySlotItem, ok := client.CurrentChar.EmptyPaperdollSlot(slotBitType)
+		logger.Info.Println(busySlotItem.Name, ok)
 		if ok { //Опусташаем слот перед надеванием
 			client.CurrentChar.ItemTakeOff(busySlotItem, selectedItem.LocData)
 			clientI.EncryptAndSend(serverpackets.InventoryUpdate(busySlotItem, models.UpdateTypeModify))
 		}
 		//Надеваем шмот в пустой слот
-		logger.Info.Println(selectedItem.LocData, itemNeedSlot)
-		client.CurrentChar.ItemPutOn(selectedItem, itemNeedSlot)
-		logger.Info.Println(selectedItem.LocData, itemNeedSlot)
+		client.CurrentChar.ItemPutOn(selectedItem, uint8(selectedItem.LocData))
 
 		clientI.EncryptAndSend(serverpackets.InventoryUpdate(selectedItem, models.UpdateTypeModify))
 	}
 
-	client.CurrentChar.Paperdoll[selectedItem.LocData] = *selectedItem
+	//client.CurrentChar.Paperdoll[selectedItem.LocData] = *selectedItem
+
+	//client.CurrentChar.ShowItemsEquipped()
 
 	//Проверка скиллов предмета
 	client.CurrentChar.SkillItemListRefresh()
-
 	clientI.EncryptAndSend(serverpackets.SkillList(client))
 
 	clientI.EncryptAndSend(serverpackets.UserInfo(client))

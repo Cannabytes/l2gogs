@@ -31,9 +31,10 @@ func UserInfo(client *models.Client) []byte {
 	buffer.WriteD(player.Sex)           //sex
 	buffer.WriteD(player.BaseClassID()) //baseClass
 
-	buffer.WriteD(player.Level())                                                  //level //TODO
-	buffer.WriteQ(int64(player.EXP()))                                             //exp
-	buffer.WriteF(player.GetPercentFromCurrentLevel(player.EXP(), player.Level())) //percent
+	buffer.WriteD(player.Level())      //level //TODO
+	buffer.WriteQ(int64(player.EXP())) //exp
+	//buffer.WriteF(player.GetPercentFromCurrentLevel(player.EXP(), player.Level())) //percent
+	buffer.WriteF(50) //percent
 
 	buffer.WriteD(int32(stat.STR)) //str
 	buffer.WriteD(int32(stat.DEX)) //dex

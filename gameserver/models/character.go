@@ -306,19 +306,7 @@ func (c *Character) SetLevel(level int) {
 // ResetSkillItemBonus Сбрасывает все бонусы скиллов предмета
 func (c *Character) ResetSkillItemBonus() {
 	c.SkillsItem = nil
-	c.ItemBonus = SkillBonus{
-		MaxHP:        0,
-		MaxMP:        0,
-		MaxCP:        0,
-		Speed:        0,
-		PDef:         0,
-		MDef:         0,
-		PAtk:         0,
-		MAtk:         0,
-		AtkSpd:       0,
-		MAtkSpd:      0,
-		CriticalRate: 0,
-	}
+	c.ItemBonus = SkillBonus{}
 }
 
 // Title Титул игрока
@@ -570,6 +558,8 @@ func (c *Character) AddBonusSkill(s Skill) {
 
 // SkillItemListRefresh Получение списка скиллов надетых предметов
 // Возвращается true если скиллы были изменены
+//Нужно сделать проверку на имеющийся такйо уже скилл и заменить его есть есть выше по уровню.
+
 func (c *Character) SkillItemListRefresh() bool {
 	c.resetBonusStatCals()
 	c.ResetSkillItemBonus()
@@ -586,6 +576,26 @@ func (c *Character) SkillItemListRefresh() bool {
 		return true
 	}
 	return false
+}
+
+// ItemsEquipped Список предметов, которые экипированы на персонаже
+func (c *Character) ShowItemsEquipped() {
+	logger.Info.Println("===== Equipped Items =====")
+	for num, item := range c.Paperdoll {
+		num++
+		if item.Id == 0 {
+			continue
+		}
+		if item.Enchant >= 1 {
+			logger.Info.Printf("#%d Name: +%d %s, ID: %d\n", num-1, item.Enchant, item.Item.Name, item.Id)
+		} else {
+			logger.Info.Printf("#%d Name: %s, ID: %d\n", num-1, item.Item.Name, item.Id)
+		}
+	}
+	for i, item := range c.Inventory.Items {
+		logger.Info.Println(i, item.Name, item.LocData)
+	}
+	logger.Info.Println("===== ===== ===== =====")
 }
 
 // BonusStatCals Сложение всех статов от предметов надетых на персонаже
@@ -670,13 +680,6 @@ func (c *Character) RefreshStats() {
 		if item.Id == 0 {
 			continue
 		}
-		logger.Warning.Println(item.Id, item.Item.Name, item.LocData)
-	}
-
-	for _, item := range c.Paperdoll {
-		if item.Id == 0 {
-			continue
-		}
 		for _, bonus := range item.BonusStats {
 			if bonus.Type == "mp_bonus" {
 				c.ItemBonus.MaxMP += bonus.Val
@@ -722,15 +725,12 @@ func (c *Character) RefreshStats() {
 		}
 	}
 
-	logger.Info.Println(c.PDef())
-
 	for _, item := range c.Paperdoll {
 		if item.ItemSkill != "none" {
 			skill, _ := GetSkillName(item.ItemSkill)
 			c.skillBonusStatAdd(skill)
 		}
 	}
-	logger.Info.Println(c.MaxMP())
 
 	//Бафф рефреш
 	for _, buff := range c.Buff() {
@@ -738,7 +738,6 @@ func (c *Character) RefreshStats() {
 		c.skillBonusStatAdd(*skill)
 	}
 
-	logger.Info.Println(c.MaxMP())
 }
 
 func (c *Character) skillBonusStatAdd(skill Skill) {
@@ -747,7 +746,6 @@ func (c *Character) skillBonusStatAdd(skill Skill) {
 			c.BuffBonus.MaxMP += skill.Effect.MaxMp.Val
 		}
 		if skill.Effect.MaxMp.Cap == "per" { //Если умножить
-			logger.Warning.Println("+", skill.Effect.MaxMp.Val, "% MP")
 			c.BuffBonus.MaxMP += c.MaxMP() * skill.Effect.MaxMp.Val / 100
 		}
 	}
